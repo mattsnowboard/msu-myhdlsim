@@ -63,22 +63,23 @@ class MyHDLManager:
         
         # we need a trick to run the simulator and the main loop...
         
-        # def Hack():
-            # @instance
-            # def inst():
-                # yield(delay(1))
-                # self._app.MainLoop()
-            # return inst
-        # MyHack = Hack()
-        # self._instances.append(MyHack)
-        parent_conn, child_conn = Pipe()
+        def Hack():
+            @instance
+            def inst():
+                while(not self._frame.exit):
+                    yield(delay(1))
+                    self._app.MainLoop()
+            return inst
+        MyHack = Hack()
+        self._instances.append(MyHack)
+        #parent_conn, child_conn = Pipe()
         self._simulator = Simulation(*self._instances)
-        p = Process(target=StartSim, args=(child_conn,))
-        p.start()
-        parent_conn.send(self._simulator)
-        #self._simulator.run()
-        self._app.MainLoop()
-        p.join()
+        #p = Process(target=StartSim, args=(child_conn,))
+        #p.start()
+        #parent_conn.send(self._simulator)
+        self._simulator.run()
+        #self._app.MainLoop()
+        #p.join()
     
     def GetKeyMap(self):
         """ Get key map for figuring out what to do with events
@@ -171,6 +172,7 @@ class MainWindow(wx.Frame):
         self.sizer.Fit(self)
         
         # manager handles interaction with MyHDL
+        self.app = app
         self.manager = MyHDLManager(self.canvas, self, app)
 
         #events from signals
@@ -178,16 +180,19 @@ class MainWindow(wx.Frame):
         self.canvas.Bind(wx.EVT_CHAR, self.OnKey)
         self.canvas.SetFocus()
         
+        self.exit = False
+        
         self.Show(True)
     
     def OnKey(self, e):
-        print "HEYYYY", ord('a')
+        print "HEYYYY"
         key = e.GetKeyCode()
         print key
         map = self.manager.GetKeyMap()
         if (key in map):
             print "IN"
             map[key].Toggle()
+            self.app.ExitMainLoop()
         
     def OnSignalChange(self, e):
         print "CHANGE"
@@ -200,6 +205,7 @@ class MainWindow(wx.Frame):
     
     def OnExit(self, e):
         self.Close(True)
+        self.exit = True
         
         
 def Init():

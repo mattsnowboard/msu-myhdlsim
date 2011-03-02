@@ -11,8 +11,8 @@ class SignalWrapper:
     Handles wx event listening, toggling, and getting an object to draw
     """
     
-    def __init__(self, signal = Signal(None), x = 0, y = 0, listener = None):
-        self._signal = signal
+    def __init__(self, signal = None, x = 0, y = 0, listener = None):
+        self._signal = Signal(signal)
         self._listeners = list()
         if listener != None:
             self.AddListener(listener)
