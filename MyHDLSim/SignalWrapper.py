@@ -1,5 +1,6 @@
-from myhdl import Signal, always
 import wx, wx.lib.newevent
+import wx.lib.ogl as ogl
+from myhdl import Signal, always
 
 # The events that wx side will listen for (must register self for this)
 SignalChangeEvent, EVT_SIGNAL_CHANGE = wx.lib.newevent.NewEvent() 
@@ -15,7 +16,10 @@ class SignalWrapper:
         self._listeners = list()
         if listener != None:
             self.AddListener(listener)
-        self._shape = wx.ogl.TextShape(100,100)
+        self._shape = ogl.TextShape(100,100)
+        self._shape.AddText(str(self._signal.val))
+        self._shape.SetX(x)
+        self._shape.SetY(y)
     
     def AddListener(self, listener):
         """ Add Listener to Signal
@@ -44,6 +48,7 @@ class SignalWrapper:
         If it was unitialized, just assert it
         """
         
+        print "toggle"
         if (self._signal == None):
             self._signal.next = True
         else:
@@ -59,19 +64,22 @@ class SignalWrapper:
         # this should get run whenever signal changes
         @always(self._signal.posedge, self._signal.negedge)
         def logic():
+            print "in logic!"
+            self._shape.ClearText()
+            self._shape.AddText(str(self._signal.val))
             evt = SignalChangeEvent(val = self._signal.val)
             
             for listener in self._listeners:
                 wx.PostEvent(listener, evt)
         
         return logic
+    
+    def SetX(self, x):
+        self._shape.SetX(x)
         
+    def SetY(self, y):
+        self._shape.SetY(y)
+    
     def GetShape(self):
         return self._shape
     
-    def Draw(self, target):
-        """ Draw the signal on a target with most recent value
-        """
-        
-        #TODO
-        pass
