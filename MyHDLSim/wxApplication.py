@@ -6,20 +6,14 @@ from myhdl import Signal, Simulation, delay, instance
 from MyHDLSim.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
 from MyHDLSim.AndGateWrapper import AndGateWrapper
 
-def StartSim(conn):
-    sim = conn.recv()
-    sim.run()
-    
 
-def StartApp(app):
-    app.MainLoop()
-    
 class MyHDLManager:
     """ This class will manage the Signals and Gates and Simulator """
-    def __init__(self, canvas, frame, app):
-        self._canvas = canvas
-        self._frame = frame
+    def __init__(self, app):
+        self._frame = MainWindow(None, 'Demo')
+        self._canvas = self._frame.canvas
         self._app = app
+        
         # get passed to MyHDL simulator (gates, event listening generators, etc.)
         self._instances = list()
         # quick look up of gates/signals by ID
@@ -27,6 +21,9 @@ class MyHDLManager:
         self._signals = []
         self._signalMap = {}
         
+        self._frame.Bind(EVT_SIGNAL_CHANGE, self.OnSignalChange)
+        self._canvas.Bind(wx.EVT_CHAR, self.OnKey)
+        self._canvas.SetFocus()
         
     def CreateSignal(self):
         """ Create a signal which we can keep track of
@@ -59,33 +56,35 @@ class MyHDLManager:
     def Start(self):
         """ Initialize and start the simulator """
         
-        print "START"
-        
         # we need a trick to run the simulator and the main loop...
         
         def Hack():
             @instance
             def inst():
-                while(not self._frame.exit):
+                while(self._frame and not self._frame.exit):
                     yield(delay(1))
                     self._app.MainLoop()
             return inst
         MyHack = Hack()
         self._instances.append(MyHack)
-        #parent_conn, child_conn = Pipe()
+
         self._simulator = Simulation(*self._instances)
-        #p = Process(target=StartSim, args=(child_conn,))
-        #p.start()
-        #parent_conn.send(self._simulator)
+
         self._simulator.run()
-        #self._app.MainLoop()
-        #p.join()
-    
-    def GetKeyMap(self):
-        """ Get key map for figuring out what to do with events
-        
-        """
-        return self._signalMap
+
+    def OnKey(self, e):
+        print "HEYYYY"
+        key = e.GetKeyCode()
+        print key
+        map = self._signalMap
+        if (key in map):
+            print "IN"
+            map[key].Toggle()
+            self._app.ExitMainLoop()
+            
+    def OnSignalChange(self, e):
+        print "CHANGE"
+        self._canvas.Refresh(False)
 
 class MyHDLCanvas(ogl.ShapeCanvas):
     def __init__(self, parent, frame):
@@ -107,11 +106,6 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         self.diagram.AddShape(shape)
         shape.Show(True)
 
-        #evthandler = MyEvtHandler(self.log, self.frame)
-        #evthandler.SetShape(shape)
-        #evthandler.SetPreviousHandler(shape.GetEventHandler())
-        #shape.SetEventHandler(evthandler)
-
         self.gates.append(shape)
         return shape
     
@@ -132,12 +126,9 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         line.Show(True)
         
 class MainWindow(wx.Frame):
-    def __init__(self, parent, app, title):
+    def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(800,600))
-        #self.panel = wx.Panel(self, size=(1,1))
-        #self.panel.SetFocus()
-        #self.panel.Show(False)
-        #self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        
         self.CreateStatusBar()
         
         # menu
@@ -160,7 +151,6 @@ class MainWindow(wx.Frame):
             self.buttons.append(wx.Button(self, -1, "Button &"+str(i)))
             self.buttonToolbar.Add(self.buttons[i], 1, wx.EXPAND)
         
-        # not sure about these parameters...
         self.canvas = MyHDLCanvas(self, self)
         
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -171,32 +161,9 @@ class MainWindow(wx.Frame):
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
         
-        # manager handles interaction with MyHDL
-        self.app = app
-        self.manager = MyHDLManager(self.canvas, self, app)
-
-        #events from signals
-        self.Bind(EVT_SIGNAL_CHANGE, self.OnSignalChange)
-        self.canvas.Bind(wx.EVT_CHAR, self.OnKey)
-        self.canvas.SetFocus()
+        self.Show(True)
         
         self.exit = False
-        
-        self.Show(True)
-    
-    def OnKey(self, e):
-        print "HEYYYY"
-        key = e.GetKeyCode()
-        print key
-        map = self.manager.GetKeyMap()
-        if (key in map):
-            print "IN"
-            map[key].Toggle()
-            self.app.ExitMainLoop()
-        
-    def OnSignalChange(self, e):
-        print "CHANGE"
-        self.canvas.Refresh(False)
     
     def OnAbout(self, e):
         dlg = wx.MessageDialog(self, "Trying to hook MyHDL up to wxPython", "About Demo", wx.OK)
@@ -210,7 +177,7 @@ class MainWindow(wx.Frame):
         
 def Init():
     app = wx.App(False)
+    manager = MyHDLManager(app)
     ogl.OGLInitialize()
-    frame = MainWindow(None, app, 'Demo')
-    return frame.manager
+    return manager
     
