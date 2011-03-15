@@ -3,9 +3,10 @@ from multiprocessing import Process, Pipe
 import wx
 import wx.lib.ogl as ogl
 from myhdl import Signal, Simulation, delay, instance
-from MyHDLSim.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
-from MyHDLSim.AndGateWrapper import AndGateWrapper
-
+from MyHDLSim.Wrappers.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
+from MyHDLSim.Wrappers.NotGateWrapper import NotGateWrapper
+from MyHDLSim.Wrappers.AndGateWrapper import AndGateWrapper
+from MyHDLSim.Wrappers.OrGateWrapper import OrGateWrapper
 
 class MyHDLManager:
     """ This class will manage the Signals and Gates and Simulator """
@@ -29,7 +30,7 @@ class MyHDLManager:
         """ Create a signal which we can keep track of
         
         """
-        signal = SignalWrapper()
+        signal = SignalWrapper(self._canvas)
         signal.AddListener(self._frame)
         self._signals.append(signal)
         return signal
@@ -38,17 +39,45 @@ class MyHDLManager:
         """ Add a switch to an existing signal
         
         """
+        signal.SetLabel(self._canvas, key)
         signal.SetX(pos[0])
         signal.SetY(pos[1])
         self._instances.append(signal.GetGenerator())
         self._signalMap[ord(key)] = signal
-        self._canvas.AddMyHDLSignal(signal.GetShape())
-    
+        self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
+        
+    def AddProbe(self, pos, signal, label):
+        """ Add a signal visually with a label but no key events
+        
+        """
+        signal.SetLabel(self._canvas, label)
+        signal.SetX(pos[0])
+        signal.SetY(pos[1])
+        self._instances.append(signal.GetGenerator())
+        self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
+        
     def AddAndGate(self, pos, out, a, b, c = None, d = None):
         """ Create an AND gate
         
         """
         gate = AndGateWrapper(self._canvas, pos[0], pos[1], out, a, b, c, d)
+        self._addInstance(gate)
+
+    def AddOrGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an OR gate
+        
+        """
+        gate = OrGateWrapper(self._canvas, pos[0], pos[1], out, a, b, c, d)
+        self._addInstance(gate)
+        
+    def AddNotGate(self, pos, out, a):
+        """ Create a NOT gate
+        
+        """
+        gate = NotGateWrapper(self._canvas, pos[0], pos[1], out, a)
+        self._addInstance(gate)
+        
+    def _addInstance(self, gate):
         inst = gate.GetInstance()
         self._instances.append(inst)
         self._gates.append(gate)
@@ -109,8 +138,14 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         self.gates.append(shape)
         return shape
     
-    def AddMyHDLSignal(self, shape):
+    def AddMyHDLSignal(self, shape, x, y):
+        if isinstance(shape, ogl.CompositeShape):
+            dc = wx.ClientDC(self)
+            self.PrepareDC(dc)
+            shape.Move(dc, x, y)
         shape.SetCanvas(self)
+        shape.SetX(x)
+        shape.SetY(y)
         self.diagram.AddShape(shape)
         shape.Show(True)
         self.signals.append(shape)

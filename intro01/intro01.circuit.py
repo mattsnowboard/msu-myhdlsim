@@ -1,45 +1,36 @@
-from myhdl import Signal, Simulation, delay, always_comb, instances
-from random import randrange
-from MyHDLSim.combinational import Not, And, Or
+import MyHDLSim.wxApplication
 
-def Circuit(a, b, c, d, f):
-    
-    """ Circuit component
-    
-    This contains several gates
-    a, b, c, d -- input signals
-    f -- output signal
-    
-    """
-    
-    notb, notc, notd = [Signal(0) for i in range(3)]
-    and1, and2 = [Signal(0) for i in range(2)]
-    not_b_inst = Not(notb, b)
-    not_c_inst = Not(notc, c)
-    not_d_inst = Not(notd, d)
-    
-    and1_inst = And(and1, a, notb)
-    and2_inst = And(and2, b, notc, notd)
-    
-    or_inst = Or(f, and1, and2)
-    
-    return instances()
+manager = MyHDLSim.wxApplication.Init()
 
-a, b, c, d, f = [Signal(0) for i in range(5)]
+## Circuit from intro01.circuit.c
 
-circuit = Circuit(a, b, c, d, f)
+a, b, c, d, F = [manager.CreateSignal() for i in range(5)]
+# intermediate signals
+notb, notc, notd = [manager.CreateSignal() for i in range(3)]
+and1, and2 = [manager.CreateSignal() for i in range(2)]
 
-def test():
-    print "a b c d f"
-    for a_count in range(2):
-        for b_count in range(2):
-            for c_count in range(2):
-                for d_count in range(2):
-                    a.next, b.next, c.next, d.next = a_count, b_count, c_count, d_count
-                    yield delay(10)
-                    print "%s %s %s %s %s" % (a, b, c, d, f)
 
-test_1 = test()
 
-sim = Simulation(circuit, test_1)
-sim.run()
+manager.AddSwitch((20, 100), a, 'a')
+manager.AddSwitch((20, 200), b, 'b')
+manager.AddSwitch((20, 300), c, 'c')
+manager.AddSwitch((20, 400), d, 'd')
+
+manager.AddProbe((700, 300), F, 'f')
+
+manager.AddProbe((300, 200), notb, 'notb')
+manager.AddProbe((300, 300), notc, 'notc')
+manager.AddProbe((300, 400), notd, 'notd')
+manager.AddProbe((500, 200), and1, 'and1')
+manager.AddProbe((500, 400), and2, 'and2')
+
+manager.AddNotGate((200, 200), notb, b)
+manager.AddNotGate((200, 200), notc, c)
+manager.AddNotGate((200, 200), notd, d)
+
+manager.AddAndGate((400, 200), and1, a, notb)
+manager.AddAndGate((400, 400), and2, b, notc, notd)
+
+manager.AddOrGate((600, 300), F, and1, and2)
+
+manager.Start()
