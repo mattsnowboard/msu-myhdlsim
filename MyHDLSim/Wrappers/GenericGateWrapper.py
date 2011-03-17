@@ -7,7 +7,7 @@ class GenericGateShape(ogl.CompositeShape):
         
         self.SetCanvas(canvas)
         
-	# Change me once we stop using rectangles for all gates
+        # Change me once we stop using rectangles for all gates
         self._gate = ogl.RectangleShape(100, 100)
                
         self._gate.AddText(label)
@@ -15,17 +15,17 @@ class GenericGateShape(ogl.CompositeShape):
         self.AddChild(self._gate)
         self.AddChild(outputShape)
         
-	# Locks the output to the right of the gate, then adds the wires
+        # Locks the output to the right of the gate, then adds the wires
         constraint = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._gate, [outputShape])
-	constraint.SetSpacing(10,0)
+        constraint.SetSpacing(10,0)
         self.AddConstraint(constraint)
         self.Recompute()
-	canvas.ConnectWires(self._gate, outputShape)
+        canvas.ConnectWires(self._gate, outputShape)
         
         # If we don't do this, the shapes will be able to move on their
         # own, instead of moving the composite
         self._gate.SetDraggable(False)
-	outputShape.SetDraggable(False)
+        outputShape.SetDraggable(False)
 
         # If we don't do this the shape will take all left-clicks for itself
         self._gate.SetSensitivityFilter(0)
@@ -44,9 +44,9 @@ class GenericGateWrapper:
         self._signals = list()
         # default shape that other classes SHOULD override
         self._shape = GenericGateShape(drawManager, label, out.GetShape())
-     	dc = wx.ClientDC(drawManager)
-    	drawManager.PrepareDC(dc)
-    	self._shape.Move(dc, x, y)
+        dc = wx.ClientDC(drawManager)
+        drawManager.PrepareDC(dc)
+        self._shape.Move(dc, x, y)
     
     def _addSignal(self, signal):
         """ Add signal

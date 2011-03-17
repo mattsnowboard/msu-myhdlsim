@@ -7,7 +7,7 @@ class AndGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.AND function for drawing """
     
     def __init__(self, drawManager, x, y, out, a, b, c = None, d = None):
-	GenericGateWrapper.__init__(self, drawManager, x, y, out, "AND")
+        GenericGateWrapper.__init__(self, drawManager, x, y, out, "AND")
         if (c != None and d != None):
             self._inst = And(out.GetSignal(),
                              a.GetSignal(),
@@ -23,13 +23,13 @@ class AndGateWrapper(GenericGateWrapper):
             self._inst = And(out.GetSignal(),
                              a.GetSignal(),
                              b.GetSignal())
-	GenericGateWrapper._addSignal(self, a)
+        GenericGateWrapper._addSignal(self, a)
         GenericGateWrapper._addSignal(self, b)
         GenericGateWrapper._addSignal(self, c)
         GenericGateWrapper._addSignal(self, d)
         GenericGateWrapper._addSignal(self, out)
-	# override default here!
-	#self._shape = ogl.RectangleShape(100, 100)
+        # override default here!
+        #self._shape = ogl.RectangleShape(100, 100)
         #self._shape.SetX(x)
         #self._shape.SetY(y)
         drawManager.AddMyHDLGate(self._shape)

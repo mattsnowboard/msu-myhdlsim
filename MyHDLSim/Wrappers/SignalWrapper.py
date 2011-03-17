@@ -14,37 +14,37 @@ class SignalOGLShape(ogl.CompositeShape):
         
         outterBox = ogl.RectangleShape(80, 80)
         self._innerBox = ogl.RectangleShape(60, 60)
-	labelBox = ogl.RectangleShape(20,30)
+        labelBox = ogl.RectangleShape(20,30)
         
-	brush = wx.Brush("WHITE", wx.SOLID)
+        brush = wx.Brush("WHITE", wx.SOLID)
         outterBox.SetBrush(brush)
-	self._innerBox.SetBrush(brush)
+        self._innerBox.SetBrush(brush)
         labelBox.SetBrush(wx.Brush("MEDIUM TURQUOISE", wx.SOLID))
         
         labelBox.AddText(label)
         
         self.AddChild(outterBox)
         self.AddChild(self._innerBox)
-	self.AddChild(labelBox)
+        self.AddChild(labelBox)
         
         constraint = ogl.Constraint(ogl.CONSTRAINT_MIDALIGNED_TOP, outterBox, [labelBox])
-	constraint2 = ogl.Constraint(ogl.CONSTRAINT_CENTRED_BOTH, outterBox, [self._innerBox])
+        constraint2 = ogl.Constraint(ogl.CONSTRAINT_CENTRED_BOTH, outterBox, [self._innerBox])
         self.AddConstraint(constraint)
-	self.AddConstraint(constraint2)
+        self.AddConstraint(constraint2)
         self.Recompute()
         
         # If we don't do this, the shapes will be able to move on their
         # own, instead of moving the composite
         outterBox.SetDraggable(False)
-	self._innerBox.SetDraggable(False)
+        self._innerBox.SetDraggable(False)
         labelBox.SetDraggable(False)
 
         # If we don't do this the shape will take all left-clicks for itself
         outterBox.SetSensitivityFilter(0)
-  
-	# overrides normal shape function so that box actually changes color
+        
+    # overrides normal shape function so that box actually changes color
     def SetBrush(self, brush):
-      	self._innerBox.SetBrush(brush)
+        self._innerBox.SetBrush(brush)
 
 
 class SignalWrapper:
@@ -89,14 +89,14 @@ class SignalWrapper:
         self._shape.AddText(str(self._signal.val))
 
     def SetProbe(self, canvas, a, label):
-	""" Sets signal as a probe, need to recreate shape
-	
-	"""
-	self._label = label
-	self._signal = a._signal
-	self._shape = SignalOGLShape(canvas, label)
-	self._shape.AddText(str(self._signal.val))
-	canvas.ConnectWires(self._shape, a.GetShape())
+        """ Sets signal as a probe, need to recreate shape
+        
+        """
+        self._label = label
+        self._signal = a._signal
+        self._shape = SignalOGLShape(canvas, label)
+        self._shape.AddText(str(self._signal.val))
+        canvas.ConnectWires(self._shape, a.GetShape())
     
     def GetSignal(self):
         """ Get the underlying object
@@ -124,16 +124,16 @@ class SignalWrapper:
         # Change me if you want something else
         if (self._signal.val == None):
             self._shape.AddText(str(self._signal.val))
-	    self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
-	    self._shape.SetTextColour("BLACK")
-	elif (bool(self._signal.val) == False):
+            self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
+            self._shape.SetTextColour("BLACK")
+        elif (bool(self._signal.val) == False):
             self._shape.AddText(str(bool(self._signal.val)))
-	    self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
-	    self._shape.SetTextColour("BLACK")
+            self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
+            self._shape.SetTextColour("BLACK")
         else:
             self._shape.AddText(str(bool(self._signal.val)))
-	    self._shape.SetBrush(wx.Brush("BLACK", wx.SOLID))
-	    self._shape.SetTextColour("WHITE")
+            self._shape.SetBrush(wx.Brush("BLACK", wx.SOLID))
+            self._shape.SetTextColour("WHITE")
         #evt = SignalChangeEvent(val = self._signal.val)
     
     def SetX(self, x):
