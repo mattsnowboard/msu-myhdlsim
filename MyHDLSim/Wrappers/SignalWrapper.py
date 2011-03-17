@@ -48,7 +48,7 @@ class SignalWrapper:
         self._listeners = list()
         if listener != None:
             self.AddListener(listener)
-        self._shape = SignalOGLShape(canvas, label)
+        self._shape = ogl.RectangleShape(50,50)
         self._shape.AddText(str(self._signal.val))
         #self._shape.SetX(x)
         #self._shape.SetY(y)
@@ -69,13 +69,23 @@ class SignalWrapper:
         
         self._listeners.remove(listener)
     
-    def SetLabel(self, canvas, label):
+    def SetSwitch(self, canvas, label):
         """ Setting a label, need to recreate shape
         
         """
         self._label = label
         self._shape = SignalOGLShape(canvas, label)
         self._shape.AddText(str(self._signal.val))
+
+    def SetProbe(self, canvas, a, label):
+	""" Sets signal as a probe, need to recreate shape
+	
+	"""
+	self._label = label
+	self._signal = a._signal
+	self._shape = SignalOGLShape(canvas, label)
+	self._shape.AddText(str(self._signal.val))
+	canvas.ConnectWires(self._shape, a.GetShape())
     
     def GetSignal(self):
         """ Get the underlying object

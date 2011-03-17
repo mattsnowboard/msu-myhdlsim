@@ -7,7 +7,7 @@ class OrGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.OR function for drawing """
     
     def __init__(self, drawManager, x, y, out, a, b, c = None, d = None):
-        GenericGateWrapper.__init__(self, x, y)
+        GenericGateWrapper.__init__(self, drawManager, x, y, out, "OR")
         if (c != None and d != None):
             self._inst = Or(out.GetSignal(),
                             a.GetSignal(),
@@ -32,6 +32,5 @@ class OrGateWrapper(GenericGateWrapper):
         #self._shape = ogl.RectangleShape(100, 100)
         #self._shape.SetX(x)
         #self._shape.SetY(y)
-        self._shape.AddText("OR")
         drawManager.AddMyHDLGate(self._shape)
         GenericGateWrapper._connectWires(self, drawManager)

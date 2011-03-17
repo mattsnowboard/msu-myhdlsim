@@ -7,7 +7,7 @@ class NotGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.NOT function for drawing """
     
     def __init__(self, drawManager, x, y, out, a):
-        GenericGateWrapper.__init__(self, x, y)
+        GenericGateWrapper.__init__(self, drawManager, x, y, out, "NOT")
         self._inst = Not(out.GetSignal(),
 			 a.GetSignal())
         GenericGateWrapper._addSignal(self, a)
@@ -16,6 +16,5 @@ class NotGateWrapper(GenericGateWrapper):
         #self._shape = ogl.RectangleShape(100, 100)
         #self._shape.SetX(x)
         #self._shape.SetY(y)
-        self._shape.AddText("NOT")
         drawManager.AddMyHDLGate(self._shape)
         GenericGateWrapper._connectWires(self, drawManager)

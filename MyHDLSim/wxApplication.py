@@ -39,17 +39,18 @@ class MyHDLManager:
         """ Add a switch to an existing signal
         
         """
-        signal.SetLabel(self._canvas, key)
+        signal.SetSwitch(self._canvas, key)
         signal.SetX(pos[0])
         signal.SetY(pos[1])
         self._signalMap[ord(key)] = signal
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
         
-    def AddProbe(self, pos, signal, label):
+    def AddProbe(self, pos, a, label):
         """ Add a signal visually with a label but no key events
         
         """
-        signal.SetLabel(self._canvas, label)
+	signal = self.CreateSignal()
+        signal.SetProbe(self._canvas, a, label)
         signal.SetX(pos[0])
         signal.SetY(pos[1])
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
@@ -60,6 +61,7 @@ class MyHDLManager:
         """
         gate = AndGateWrapper(self._canvas, pos[0], pos[1], out, a, b, c, d)
         self._addInstance(gate)
+
 
     def AddOrGate(self, pos, out, a, b, c = None, d = None):
         """ Create an OR gate
