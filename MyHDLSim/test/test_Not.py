@@ -31,3 +31,21 @@ class TestNotGate(TestCase):
         check = test(out, a)
         sim = Simulation(gate, check)
         sim.run(quiet=1)
+        
+    def testToggleUndefinedBit(self):
+        """ Make sure NOT gate properly output changes when input changes from None """
+       
+        
+        def test(out, a):
+            yield delay(10)
+            self.assertEqual(Signal(None), a)
+            self.assertEqual(Signal(None), out)
+            a.next = True
+            yield delay(10)
+            self.assertEqual(Signal(False), out)
+            
+        a, out = [Signal(None) for i in range(2)]
+        gate = Not(out, a)
+        check = test(out, a)
+        sim = Simulation(gate, check)
+        sim.run(quiet=1)

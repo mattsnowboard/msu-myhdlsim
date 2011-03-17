@@ -43,6 +43,7 @@ class SignalWrapper:
     """
     
     def __init__(self, canvas, signal = None, x = 0, y = 0, label = '', listener = None):
+        self._label = label
         self._signal = Signal(signal)
         self._listeners = list()
         if listener != None:
@@ -72,6 +73,7 @@ class SignalWrapper:
         """ Setting a label, need to recreate shape
         
         """
+        self._label = label
         self._shape = SignalOGLShape(canvas, label)
         self._shape.AddText(str(self._signal.val))
     
@@ -86,33 +88,24 @@ class SignalWrapper:
         If it was unitialized, just assert it
         """
         
-        print "toggle"
         if (self._signal == None):
             self._signal.next = True
         else:
             self._signal.next = not self._signal
-    
-    def GetGenerator(self):
-        """ This is the function that returns a MyHDL generator.
         
-        This should be passed to a MyHDL Simulator so that listeners get
-        update when the Signal changes
+    def Update(self):
+        """ This visually refreshes a Signal
+        
+        Caller must know when Signal has changed
         """
-        
-        # this should get run whenever signal changes
-        @always(self._signal.posedge, self._signal.negedge)
-        def logic():
-            print "in logic!"
-            self._shape.ClearText()
-            # For now we are printing TEXT "True", "False", or "None"
-            # Change me if you want something else
+        self._shape.ClearText()
+        # For now we are printing TEXT "True", "False", or "None"
+        # Change me if you want something else
+        if (self._signal.val == None):
+            self._shape.AddText(str(self._signal.val))
+        else:
             self._shape.AddText(str(bool(self._signal.val)))
-            evt = SignalChangeEvent(val = self._signal.val)
-            
-            for listener in self._listeners:
-                wx.PostEvent(listener, evt)
-        
-        return logic
+        #evt = SignalChangeEvent(val = self._signal.val)
     
     def SetX(self, x):
         self._x = x

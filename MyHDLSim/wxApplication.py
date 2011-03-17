@@ -22,15 +22,15 @@ class MyHDLManager:
         self._signals = []
         self._signalMap = {}
         
-        self._frame.Bind(EVT_SIGNAL_CHANGE, self.OnSignalChange)
+        #self._frame.Bind(EVT_SIGNAL_CHANGE, self.OnSignalChange)
         self._canvas.Bind(wx.EVT_CHAR, self.OnKey)
         self._canvas.SetFocus()
         
-    def CreateSignal(self):
+    def CreateSignal(self, initial = None):
         """ Create a signal which we can keep track of
         
         """
-        signal = SignalWrapper(self._canvas)
+        signal = SignalWrapper(self._canvas, initial)
         signal.AddListener(self._frame)
         self._signals.append(signal)
         return signal
@@ -42,7 +42,6 @@ class MyHDLManager:
         signal.SetLabel(self._canvas, key)
         signal.SetX(pos[0])
         signal.SetY(pos[1])
-        self._instances.append(signal.GetGenerator())
         self._signalMap[ord(key)] = signal
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
         
@@ -53,7 +52,6 @@ class MyHDLManager:
         signal.SetLabel(self._canvas, label)
         signal.SetX(pos[0])
         signal.SetY(pos[1])
-        self._instances.append(signal.GetGenerator())
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
         
     def AddAndGate(self, pos, out, a, b, c = None, d = None):
@@ -87,32 +85,32 @@ class MyHDLManager:
         
         # we need a trick to run the simulator and the main loop...
         
-        def Hack():
+        def EventLoop():
             @instance
             def inst():
                 while(self._frame and not self._frame.exit):
-                    yield(delay(1))
+                    yield delay(1)
+                    self._refresh()
                     self._app.MainLoop()
+                    print "exited main loop"
             return inst
-        MyHack = Hack()
-        self._instances.append(MyHack)
+        event_loop_runner = EventLoop()
+        self._instances.append(event_loop_runner)
 
         self._simulator = Simulation(*self._instances)
 
         self._simulator.run()
 
     def OnKey(self, e):
-        print "HEYYYY"
         key = e.GetKeyCode()
-        print key
         map = self._signalMap
         if (key in map):
-            print "IN"
             map[key].Toggle()
             self._app.ExitMainLoop()
-            
-    def OnSignalChange(self, e):
-        print "CHANGE"
+        
+    def _refresh(self):
+        for s in self._signals:
+            s.Update()
         self._canvas.Refresh(False)
 
 class MyHDLCanvas(ogl.ShapeCanvas):

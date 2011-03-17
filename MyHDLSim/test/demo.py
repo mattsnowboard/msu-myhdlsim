@@ -2,12 +2,22 @@ import MyHDLSim.wxApplication
 
 manager = MyHDLSim.wxApplication.Init()
 
-a, b, F = [manager.CreateSignal() for i in range(3)]
+a, b, notb, F = [manager.CreateSignal() for i in range(4)]
+x, y, out = [manager.CreateSignal() for i in range(3)]
 
 manager.AddSwitch((20, 100), a, 'a')
 manager.AddSwitch((20, 200), b, 'b')
-manager.AddSwitch((600, 150), F, 'f')
+manager.AddProbe((400, 300), notb, 'notb')
+manager.AddProbe((600, 150), F, 'f')
 
-manager.AddAndGate((320, 200), F, a, b)
+manager.AddSwitch((20, 400), x, 'x')
+manager.AddSwitch((20, 500), y, 'y')
+manager.AddProbe((400, 500), out, 'out')
+
+manager.AddAndGate((200, 400), out, x, y)
+
+manager.AddNotGate((200, 300), notb, b)
+
+manager.AddAndGate((520, 200), F, a, notb)
 
 manager.Start()
