@@ -9,8 +9,6 @@ class GenericGateShape(ogl.CompositeShape):
         
 	# Change me once we stop using rectangles for all gates
         self._gate = ogl.RectangleShape(100, 100)
-	#output._shape = ogl.RectangleShape(10,10)
-	#outputShape = output._shape
                
         self._gate.AddText(label)
         
@@ -18,7 +16,7 @@ class GenericGateShape(ogl.CompositeShape):
         self.AddChild(outputShape)
         
 	# Locks the output to the right of the gate, then adds the wires
-        constraint = ogl.Constraint(ogl.CONSTRAINT_MIDALIGNED_RIGHT, self._gate, [outputShape])
+        constraint = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._gate, [outputShape])
 	constraint.SetSpacing(10,0)
         self.AddConstraint(constraint)
         self.Recompute()
@@ -31,6 +29,7 @@ class GenericGateShape(ogl.CompositeShape):
 
         # If we don't do this the shape will take all left-clicks for itself
         self._gate.SetSensitivityFilter(0)
+
 
 class GenericGateWrapper:
     """ This class wraps a gate for drawing

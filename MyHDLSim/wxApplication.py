@@ -94,7 +94,6 @@ class MyHDLManager:
                     yield delay(1)
                     self._refresh()
                     self._app.MainLoop()
-                    print "exited main loop"
             return inst
         event_loop_runner = EventLoop()
         self._instances.append(event_loop_runner)

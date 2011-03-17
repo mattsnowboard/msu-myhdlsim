@@ -6,35 +6,46 @@ from myhdl import Signal, always
 SignalChangeEvent, EVT_SIGNAL_CHANGE = wx.lib.newevent.NewEvent() 
 
 # OGL object to draw a signal
-# this code is pretty much from the OGL demo, hope it looks ok for now
 class SignalOGLShape(ogl.CompositeShape):
     def __init__(self, canvas, label):
         ogl.CompositeShape.__init__(self)
         
         self.SetCanvas(canvas)
         
-        container = ogl.RectangleShape(80, 50)
-        label_shape = ogl.RectangleShape(40, 30)
+        outterBox = ogl.RectangleShape(80, 80)
+        self._innerBox = ogl.RectangleShape(60, 60)
+	labelBox = ogl.RectangleShape(20,30)
         
-        container.SetBrush(wx.Brush("MEDIUM TURQUOISE", wx.SOLID))
-        label_shape.SetBrush(wx.Brush("MEDIUM TURQUOISE", wx.SOLID))
+	brush = wx.Brush("WHITE", wx.SOLID)
+        outterBox.SetBrush(brush)
+	self._innerBox.SetBrush(brush)
+        labelBox.SetBrush(wx.Brush("MEDIUM TURQUOISE", wx.SOLID))
         
-        label_shape.AddText(label)
+        labelBox.AddText(label)
         
-        self.AddChild(container)
-        self.AddChild(label_shape)
+        self.AddChild(outterBox)
+        self.AddChild(self._innerBox)
+	self.AddChild(labelBox)
         
-        constraint = ogl.Constraint(ogl.CONSTRAINT_MIDALIGNED_TOP, container, [label_shape])
+        constraint = ogl.Constraint(ogl.CONSTRAINT_MIDALIGNED_TOP, outterBox, [labelBox])
+	constraint2 = ogl.Constraint(ogl.CONSTRAINT_CENTRED_BOTH, outterBox, [self._innerBox])
         self.AddConstraint(constraint)
+	self.AddConstraint(constraint2)
         self.Recompute()
         
         # If we don't do this, the shapes will be able to move on their
         # own, instead of moving the composite
-        container.SetDraggable(False)
-        label_shape.SetDraggable(False)
+        outterBox.SetDraggable(False)
+	self._innerBox.SetDraggable(False)
+        labelBox.SetDraggable(False)
 
         # If we don't do this the shape will take all left-clicks for itself
-        container.SetSensitivityFilter(0)
+        outterBox.SetSensitivityFilter(0)
+  
+	# overrides normal shape function so that box actually changes color
+    def SetBrush(self, brush):
+      	self._innerBox.SetBrush(brush)
+
 
 class SignalWrapper:
     """ This class wraps a MyHDL.Signal object
@@ -48,7 +59,7 @@ class SignalWrapper:
         self._listeners = list()
         if listener != None:
             self.AddListener(listener)
-        self._shape = ogl.RectangleShape(50,50)
+        self._shape = ogl.RectangleShape(10,10)
         self._shape.AddText(str(self._signal.val))
         #self._shape.SetX(x)
         #self._shape.SetY(y)
@@ -113,8 +124,16 @@ class SignalWrapper:
         # Change me if you want something else
         if (self._signal.val == None):
             self._shape.AddText(str(self._signal.val))
+	    self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
+	    self._shape.SetTextColour("BLACK")
+	elif (bool(self._signal.val) == False):
+            self._shape.AddText(str(bool(self._signal.val)))
+	    self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
+	    self._shape.SetTextColour("BLACK")
         else:
             self._shape.AddText(str(bool(self._signal.val)))
+	    self._shape.SetBrush(wx.Brush("BLACK", wx.SOLID))
+	    self._shape.SetTextColour("WHITE")
         #evt = SignalChangeEvent(val = self._signal.val)
     
     def SetX(self, x):
