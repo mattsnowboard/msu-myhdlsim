@@ -1,6 +1,6 @@
-import MyHDLSim.wxApplication
+import MyHDLSim.Manager
 
-manager = MyHDLSim.wxApplication.Init()
+manager = MyHDLSim.Manager.Init()
 
 ## Circuit from intro01.circuit.c
 

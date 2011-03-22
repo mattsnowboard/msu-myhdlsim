@@ -1,6 +1,6 @@
-import MyHDLSim.wxApplication
+import MyHDLSim.Manager
 
-manager = MyHDLSim.wxApplication.Init()
+manager = MyHDLSim.Manager.Init()
 
 a, b, notb, F = [manager.CreateSignal() for i in range(4)]
 x, y, out = [manager.CreateSignal() for i in range(3)]

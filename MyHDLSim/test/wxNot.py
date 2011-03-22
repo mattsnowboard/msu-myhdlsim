@@ -1,6 +1,6 @@
-import MyHDLSim.wxApplication
+import MyHDLSim.Manager
 
-manager = MyHDLSim.wxApplication.Init()
+manager = MyHDLSim.Manager.Init()
 
 #b, notb = [manager.CreateSignal(False) for i in range(2)]
 b = manager.CreateSignal(None)
