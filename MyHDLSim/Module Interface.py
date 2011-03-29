@@ -31,16 +31,18 @@ def MyModule(manager, signalA, signalB, signalC, signalOut):
 
 manager = MyHDLSim.wxApplication.Init()
 
-a, b, c, F = [manager.CreateSignal() for i in range(4)]
+a, b, c, F, G = [manager.CreateSignal() for i in range(5)]
 
 manager.AddSwitch((20, 100), a, 'a')
 manager.AddSwitch((20, 200), b, 'b')
 manager.AddSwitch((600, 150), c, 'c')
 
 myModule = MyModule(manager, a, b, c, F)
+myModule2 = MyModule(manager, c, a, b, G)
 
 #takes the module which a user now has built and does the appropriate wiring and grabbing the instance
 manager.AddModule((320, 200), myModule, "Name to display")
+manager.AddModule((320, 500), myModule2, "Name2")
 
 manager.Start()
 

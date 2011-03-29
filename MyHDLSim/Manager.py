@@ -18,6 +18,7 @@ class Manager:
         # get passed to MyHDL simulator (gates, event listening generators, etc.)
         self._instances = list()
         # quick look up of gates/signals by ID
+        self._modules = []
         self._gates = []
         self._signals = []
         self._signalMap = {}
@@ -35,6 +36,16 @@ class Manager:
         signal.AddListener(self._frame)
         self._signals.append(signal)
         return signal
+        
+    def CreateModule(self):
+        """ Create a module that a user can define
+        
+        return: the module ready to be customized
+        """
+        module = Module(self, self._canvas)
+        self._modules.append(module)
+        return module
+        
     
     def AddSwitch(self, pos, signal, key):
         """ Add a switch to an existing signal
@@ -78,7 +89,10 @@ class Manager:
         This is a way to allow users to ignore the underlying module
         """
         self._top.AddNotGate(pos, out, a)
-        
+    
+    def AddModule(self, module, pos, name):
+        self._top.AddModule(module, pos, name)
+    
     def Start(self):
         """ Initialize and start the simulator """
         

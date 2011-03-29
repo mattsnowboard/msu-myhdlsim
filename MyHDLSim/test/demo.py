@@ -1,23 +1,41 @@
 import MyHDLSim.Manager
 
+def MyModule(manager, signalA, signalB, signalOut):
+    module = manager.CreateModule()
+    
+    notA = manager.CreateSignal()
+    
+    # lets give input/output ports some names for rendering
+    # give locations relative to the module box
+    module.AddPort((0,0), signalA, True, "A input")
+    module.AddPort((0,50), signalB, True, "B input")
+    module.AddPort((400,50), signalOut, False, "OUTPUT")
+    
+    #hmm, locations don't matter too much usually...
+    # just add gates to the module
+    module.AddNotGate((100,100), notA, signalA)
+    module.AddAndGate((200,150), signalOut, notA, signalB)
+    
+    #module.Create()
+    return module
+
 manager = MyHDLSim.Manager.Init()
 
-a, b, notb, F = [manager.CreateSignal() for i in range(4)]
-x, y, out = [manager.CreateSignal() for i in range(3)]
+a, b, c, F, G, Out = [manager.CreateSignal() for i in range(6)]
 
 manager.AddSwitch((20, 100), a, 'a')
 manager.AddSwitch((20, 200), b, 'b')
-manager.AddProbe((400, 300), notb, 'notb')
-manager.AddProbe((600, 150), F, 'f')
+manager.AddSwitch((600, 150), c, 'c')
 
-manager.AddSwitch((20, 400), x, 'x')
-manager.AddSwitch((20, 500), y, 'y')
-manager.AddProbe((400, 500), out, 'out')
+myModule = MyModule(manager, a, b, F)
+myModule2 = MyModule(manager, c, a, G)
 
-manager.AddAndGate((200, 400), out, x, y)
+#takes the module which a user now has built and does the appropriate wiring and grabbing the instance
+manager.AddModule(myModule, (320, 200), "Name to display")
+manager.AddModule(myModule2, (320, 500), "Name2")
 
-manager.AddNotGate((200, 300), notb, b)
+manager.AddOrGate((640, 300), Out, F, G)
 
-manager.AddAndGate((520, 200), F, a, notb)
+manager.AddProbe((750, 300), Out, 'out')
 
 manager.Start()
