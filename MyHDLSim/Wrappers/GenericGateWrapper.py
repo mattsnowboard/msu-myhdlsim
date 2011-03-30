@@ -64,6 +64,7 @@ class GenericGateWrapper:
         self._shape = GenericGateShape(drawManager, len(ins), out.GetShape(), gateshape)
         dc = wx.ClientDC(drawManager)
         drawManager.PrepareDC(dc)
+
         self._shape.Move(dc, x, y)
     
     """def _addSignal(self, signal):
@@ -88,6 +89,10 @@ class GenericGateWrapper:
     def GetInstance(self):
         """ Get instance for simulator """
         return self._inst
+        
+    def GetShape(self):
+        """ Get the OGL shape for manipulation """
+        return self._shape
 
 def PurgeList(a):
     count = a.count(None)

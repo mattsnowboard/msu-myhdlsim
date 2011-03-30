@@ -1,14 +1,17 @@
 import os
 import wx
 import wx.lib.ogl as ogl
+from MyHDLSim.Module import EVT_MODULE_MOVE, ModuleMoveEvent
 
 class MyEvtHandler(ogl.ShapeEvtHandler):
     """
         This is used to handle events on the OGL shapes
         Needed to make resizing work
     """
-    def __init__(self):
+    def __init__(self, canvas, manager):
         ogl.ShapeEvtHandler.__init__(self)
+        self._canvas = canvas
+        self._manager = manager
 
     def OnLeftClick(self, x, y, keys=0, attachment=0):
         shape = self.GetShape()
@@ -49,7 +52,12 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
     def OnEndDragLeft(self, x, y, keys=0, attachment=0):
         shape = self.GetShape()
         ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
-
+        # module background moves all contents
+        if shape in self._canvas.modules:
+            evt = ModuleMoveEvent(Shape = shape)
+            wx.PostEvent(self._manager.GetFrame(), evt)
+            # refresh to clear artifacts when moving a module
+            self.GetShape().GetCanvas().Refresh(False)
         if not shape.Selected():
             self.OnLeftClick(x, y, keys, attachment)
 
@@ -58,14 +66,21 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         ogl.ShapeCanvas.__init__(self, parent)
         
         self.frame = frame
+        self.manager = None
         self.SetBackgroundColour("LIGHT BLUE")
         self.SetSize((800, 600))
         self.diagram = ogl.Diagram()
         self.SetDiagram(self.diagram)
         self.diagram.SetCanvas(self)
         self.gates = []
+        self.modules = []
         self.signals = []
         
+    def SetManager(self, manager):
+        """ This is needed for some event handling
+        """
+        self.manager = manager
+    
     def AddMyHDLGate(self, shape, pen = wx.BLACK_PEN, brush = wx.LIGHT_GREY_BRUSH):
         shape.SetCanvas(self)
         if pen:    shape.SetPen(pen)
@@ -76,7 +91,18 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         
         self.gates.append(shape)
         return shape
-    
+        
+    def AddMyHDLModule(self, shape, pen = wx.BLACK_PEN, brush = wx.WHITE_BRUSH):
+        shape.SetCanvas(self)
+        if pen:    shape.SetPen(pen)
+        if brush:  shape.SetBrush(brush)
+        self.diagram.InsertShape(shape)
+        shape.Show(True)
+        self.RegisterEvents(shape)
+        
+        self.modules.append(shape)
+        return shape
+        
     def AddMyHDLSignal(self, shape, x, y):
         if isinstance(shape, ogl.CompositeShape):
             dc = wx.ClientDC(self)
@@ -92,7 +118,7 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         self.signals.append(shape)
     
     def RegisterEvents(self, shape):
-        evthandler = MyEvtHandler()
+        evthandler = MyEvtHandler(self, self.manager)
         evthandler.SetShape(shape)
         evthandler.SetPreviousHandler(shape.GetEventHandler())
         shape.SetEventHandler(evthandler)
