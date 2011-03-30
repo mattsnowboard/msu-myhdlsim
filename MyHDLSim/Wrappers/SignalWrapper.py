@@ -97,6 +97,14 @@ class SignalWrapper:
         self._shape = SignalOGLShape(canvas, label)
         self._shape.AddText(str(self._signal.val))
         canvas.ConnectWires(self._shape, a.GetShape())
+
+    def SetInputProbe(self, canvas, a, label):
+        """ Sets signal as a probe, need to recreate shape
+        
+        """
+        self._label = label
+        self._signal = a._signal
+        canvas.ConnectWires(self._shape, a.GetShape())
     
     def GetSignal(self):
         """ Get the underlying object

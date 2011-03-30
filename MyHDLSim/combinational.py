@@ -18,6 +18,24 @@ def And(f, a, b, c = Signal(1), d = Signal(1)):
 
     return logic
 
+def Nand(f, a, b, c = Signal(1), d = Signal(1)):
+
+    """ NAND gate.
+    
+    f -- output
+    a, b, c, d -- data inputs
+
+    """
+
+    @always_comb
+    def logic():
+        if (a == None or b == None or c == None or d == None):
+            f.next = None
+        else:
+            f.next = not( a and b and c and d )
+
+    return logic
+
 def Or(f, a, b, c = Signal(0), d = Signal(0)):
 
     """ OR gate.

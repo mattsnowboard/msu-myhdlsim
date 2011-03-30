@@ -75,6 +75,19 @@ class Module:
                               self.SignalToPort(d))
         self._addInstance(gate)
 
+    def AddNandGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an AND gate
+        
+        """
+        gate = NandGateWrapper(self._canvas,
+                              pos[0], pos[1],
+                              self.SignalToPort(out),
+                              self.SignalToPort(a),
+                              self.SignalToPort(b),
+                              self.SignalToPort(c),
+                              self.SignalToPort(d))
+        self._addInstance(gate)
+
     def AddOrGate(self, pos, out, a, b, c = None, d = None):
         """ Create an OR gate
         

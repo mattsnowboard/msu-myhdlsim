@@ -76,6 +76,13 @@ class Manager:
         """
         self._top.AddAndGate(pos, out, a, b, c, d)
 
+    def AddNandGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an AND gate
+        
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddNandGate(pos, out, a, b, c, d)
+
     def AddOrGate(self, pos, out, a, b, c = None, d = None):
         """ Create an OR gate
         
