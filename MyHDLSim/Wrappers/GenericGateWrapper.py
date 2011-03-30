@@ -20,7 +20,7 @@ class GenericGateShape(ogl.CompositeShape):
         for ob in self._inShapes:
             self.AddChild(ob)
             canvas.ConnectWires(self._gate, ob)
-            #ob.SetDraggable(False)
+            ob.SetDraggable(False)
 
         constraintIns = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF, self._gate, self._inShapes)
         constraintIns.SetSpacing(10, 0)
