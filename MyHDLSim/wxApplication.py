@@ -2,6 +2,57 @@ import os
 import wx
 import wx.lib.ogl as ogl
 
+class MyEvtHandler(ogl.ShapeEvtHandler):
+    """
+        This is used to handle events on the OGL shapes
+        Needed to make resizing work
+    """
+    def __init__(self):
+        ogl.ShapeEvtHandler.__init__(self)
+
+    def OnLeftClick(self, x, y, keys=0, attachment=0):
+        shape = self.GetShape()
+        canvas = shape.GetCanvas()
+        dc = wx.ClientDC(canvas)
+        canvas.PrepareDC(dc)
+
+        if shape.Selected():
+            shape.Select(False, dc)
+            #canvas.Redraw(dc)
+            canvas.Refresh(False)
+        else:
+            redraw = False
+            shapeList = canvas.GetDiagram().GetShapeList()
+            toUnselect = []
+
+            for s in shapeList:
+                if s.Selected():
+                    # If we unselect it now then some of the objects in
+                    # shapeList will become invalid (the control points are
+                    # shapes too!) and bad things will happen...
+                    toUnselect.append(s)
+
+            shape.Select(True, dc)
+
+            if toUnselect:
+                for s in toUnselect:
+                    s.Select(False, dc)
+
+                ##canvas.Redraw(dc)
+                canvas.Refresh(False)
+    
+    def OnSizingEndDragLeft(self, pt, x, y, keys, attch):
+        ogl.ShapeEvtHandler.OnSizingEndDragLeft(self, pt, x, y, keys, attch)
+        # refresh to clear artifacts when shrinking
+        self.GetShape().GetCanvas().Refresh(False)
+    
+    def OnEndDragLeft(self, x, y, keys=0, attachment=0):
+        shape = self.GetShape()
+        ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
+
+        if not shape.Selected():
+            self.OnLeftClick(x, y, keys, attachment)
+
 class MyHDLCanvas(ogl.ShapeCanvas):
     def __init__(self, parent, frame):
         ogl.ShapeCanvas.__init__(self, parent)
@@ -21,7 +72,8 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         if brush:  shape.SetBrush(brush)
         self.diagram.AddShape(shape)
         shape.Show(True)
-
+        self.RegisterEvents(shape)
+        
         self.gates.append(shape)
         return shape
     
@@ -35,7 +87,15 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         shape.SetY(y)
         self.diagram.AddShape(shape)
         shape.Show(True)
+        self.RegisterEvents(shape)
+        
         self.signals.append(shape)
+    
+    def RegisterEvents(self, shape):
+        evthandler = MyEvtHandler()
+        evthandler.SetShape(shape)
+        evthandler.SetPreviousHandler(shape.GetEventHandler())
+        shape.SetEventHandler(evthandler)
     
     def ConnectWires(self, shapeA, shapeB):
         line = ogl.LineShape()

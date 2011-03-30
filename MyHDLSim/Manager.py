@@ -77,7 +77,7 @@ class Manager:
         self._top.AddAndGate(pos, out, a, b, c, d)
 
     def AddNandGate(self, pos, out, a, b, c = None, d = None):
-        """ Create an AND gate
+        """ Create a NAND gate
         
         This is a way to allow users to ignore the underlying module
         """

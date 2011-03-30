@@ -23,9 +23,9 @@ manager = MyHDLSim.Manager.Init()
 
 a, b, c, F, G, Out = [manager.CreateSignal() for i in range(6)]
 
-manager.AddSwitch((20, 100), a, 'a')
-manager.AddSwitch((20, 200), b, 'b')
-manager.AddSwitch((600, 150), c, 'c')
+manager.AddSwitch((50, 100), a, 'a')
+manager.AddSwitch((50, 200), b, 'b')
+manager.AddSwitch((50, 300), c, 'c')
 
 myModule = MyModule(manager, a, b, F)
 myModule2 = MyModule(manager, c, a, G)
