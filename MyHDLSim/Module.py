@@ -1,3 +1,5 @@
+import wx
+import wx.lib.ogl as ogl
 from MyHDLSim.Wrappers.SignalWrapper import SignalWrapper
 from MyHDLSim.Wrappers.NotGateWrapper import NotGateWrapper
 from MyHDLSim.Wrappers.AndGateWrapper import AndGateWrapper
@@ -7,6 +9,64 @@ from MyHDLSim.Wrappers.NorGateWrapper import NorGateWrapper
 from MyHDLSim.Wrappers.XorGateWrapper import XorGateWrapper
 from MyHDLSim.Wrappers.NxorGateWrapper import NxorGateWrapper
 from myhdl import always_comb
+
+# The events that wx side will listen for, used to move contents of a Module
+ModuleMoveEvent, EVT_MODULE_MOVE = wx.lib.newevent.NewEvent() 
+
+class ModuleShape(ogl.CompositeShape):
+    def __init__(self, canvas, moduleShape, inputPorts, outputPorts):
+        ogl.CompositeShape.__init__(self)
+
+        self.SetCanvas(canvas)
+
+        self._main = moduleShape
+        self._main.SetBrush(wx.Brush(wx.Colour(0,0,0,0),wx.TRANSPARENT))
+        self.AddChild(self._main)
+
+        # Determine spacing
+        numIn = len(inputPorts)
+        numOut = len(outputPorts)
+        if (numIn != 1):
+            YspaceIns = (self._main.GetHeight() - 10 * numIn) / (numIn - 1)
+        if (numOut != 1):
+            YspaceOuts = (self._main.GetHeight() - 10 * numOut) / (numOut - 1)
+
+        # Initalize & set up 'In' objects
+        self._inShapes = inputPorts
+        for ob in self._inShapes:
+            self.AddChild(ob)
+            #canvas.ConnectWires(self._main, ob)
+            ob.SetDraggable(False)
+
+        constraintIns = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF, self._main, self._inShapes)
+        constraintIns.SetSpacing(0, 10)
+        self.AddConstraint(constraintIns)
+
+        if (numIn > 1): 
+            for q in range(numIn):
+                self._inShapes[q].SetY(YspaceIns * q - (self._main.GetHeight() / 2 - 10))
+
+        # Initalize & set up 'Out' objects
+        self._outShapes = outputPorts
+        for ob in self._outShapes:
+            self.AddChild(ob)
+            canvas.ConnectWires(self._main, ob)
+            ob.SetDraggable(False)
+
+        constraintOuts = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._main, self._outShapes)
+        constraintOuts.SetSpacing(10, 0)
+        self.AddConstraint(constraintOuts)
+        if (numOut > 1): 
+            for q in range(numOut):
+                self._outShapes[q-1].SetY(-YspaceOuts * q)
+
+
+        self.Recompute()
+        
+        #self._main.SetDraggable(False)
+
+        # If we don't do this the shape will take all left-clicks for itself
+        self._main.SetSensitivityFilter(0)
 
 class Module:
     """ This class will contain wrapped Signals and Gates """
@@ -20,12 +80,23 @@ class Module:
         # @todo Figure out where "canvas" fits in here
         self._canvas = canvas
         
+        self._shape = None
+        
+        # positioning
+        self._x = self._y = 0
+        self._width = self._height = 0
+        
         self._instances = list()
         # quick look up of gates/signals by ID
         self._gates = []
         self._modules = []
         # map the ports to the signals they are connected to
         self._portmap = {}
+        # map the shapes to the signals they represent
+        self._portShapeMap = {}
+        # images for ports
+        self._inPorts = []
+        self._outPorts = []
     
     def AddPort(self, pos, signal, is_input, label):
         """ Add a port to interface with the module
@@ -36,23 +107,25 @@ class Module:
         label: displayed on module
         TODO: do we need this? Probably for rendering as a box with I/O
         """
-        # if (is_input):
-            # port = SignalWrapper(self._canvas, signal.GetSignal().val, pos[0], pos[1])
-            # port.SetProbe(self._canvas, signal, label)
-            # port.AddListener(self._manager._frame)
-            # port.SetX(pos[0])
-            # port.SetY(pos[1])
-            # self._canvas.AddMyHDLSignal(port.GetShape(), pos[0], pos[1])
-            # #lets map the signal to the port
-            # self._portmap[signal] = port
-        # portSignal = port.GetSignal()
-        # def wire(output, input):
-            # @always_comb
-            # def logic():
-                # output.next = input
-            # return logic
-        # connection = wire(portSignal, signal.GetSignal())
-        # self._instances.append(connection)
+        if (is_input):
+            port = SignalWrapper(self._canvas, signal.GetSignal().val, pos[0], pos[1])
+            #port.SetProbe(self._canvas, signal, label)
+            port.AddListener(self._manager._frame)
+            port.SetX(pos[0])
+            port.SetY(pos[1])
+            self._inPorts.append(port.GetShape())
+            #self._canvas.AddMyHDLSignal(port.GetShape(), pos[0], pos[1])
+            #lets map the signal to the port
+            self._portmap[signal] = port
+            self._portShapeMap[port.GetShape()] = signal
+            portSignal = port.GetSignal()
+            def wire(output, input):
+                @always_comb
+                def logic():
+                    output.next = input
+                return logic
+            connection = wire(portSignal, signal.GetSignal())
+            self._instances.append(connection)
         pass
     
     def SignalToPort(self, signal):
@@ -160,7 +233,54 @@ class Module:
         module: already defined
         pos: where to position the module
         """
+        # move the module and find its bounds
+        module.Move(pos[0], pos[1], True)
+        module._setBounds()
+        # create bounding box
+        boxShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
+        module._shape = ModuleShape(self._canvas, boxShape, module._inPorts, module._outPorts)
+        # connect outer wires
+        for port in module._shape._inShapes:
+            signal = module._portShapeMap[port]
+            self._canvas.ConnectWires(signal.GetShape(), port)
+        dc = wx.ClientDC(self._canvas)
+        self._canvas.PrepareDC(dc)
+        # when moving bouding box, it is relative to center
+        module._shape.Move(dc,
+                           module.GetX() + module.GetWidth() / 2,
+                           module.GetY() + module.GetHeight() / 2,
+                           False)
+        self._canvas.AddMyHDLModule(module._shape)
         self._modules.append(module)
+    
+    def Move(self, x, y, initial = False):
+        """ Move the module and its contents
+        This should be called when adding a Module
+        
+        initial: initially, all shapes need to be moved from original location
+                 subsequent moves will just offset that
+        """
+        delta_x = x - self._x
+        delta_y = y - self._y
+        self._x = x
+        self._y = y
+        for module in self._modules:
+            module.Move(x, y)
+        for gate in self._gates:
+            shape = gate.GetShape()
+            dc = wx.ClientDC(self._canvas)
+            self._canvas.PrepareDC(dc)
+            if initial:
+                # keep a padding of 10 on each side
+                shape.Move(dc,
+                           shape.GetX() + shape.GetWidth() / 2 + self._x + 10,
+                           shape.GetY() + shape.GetHeight() / 2 + self._y + 10,
+                           False)
+            else:
+                shape.Move(dc,
+                           shape.GetX() + delta_x,
+                           shape.GetY() + delta_y,
+                           False)
     
     def GetInstances(self):
         # here we need to recurse through sub modules when they exist
@@ -169,9 +289,49 @@ class Module:
             instances.extend(module.GetInstances())
         return instances
         
-        
     def _addInstance(self, gate):
         inst = gate.GetInstance()
         self._instances.append(inst)
         self._gates.append(gate)
     
+    def _setBounds(self):
+        """ This will draw a bounding box around a module
+        """
+        self._width = 0
+        self._height = 0
+        for gate in self._gates:
+            shape = gate.GetShape()
+            new_w = shape.GetWidth() / 2  + shape.GetX() - self._x
+            new_h = shape.GetHeight() / 2 + shape.GetY() - self._y
+            if new_w > self._width:
+                # include 20 padding
+                self._width = new_w + 20
+            if new_h > self._height:
+                #include 20 padding
+                self._height = new_h + 20
+    
+    def GetShape(self):
+        """ Get the shape for this Module
+        """
+        return self._shape
+        
+    def GetWidth(self):
+        """ Get width for drawing bounding box
+        """
+        return self._width
+        
+    def GetHeight(self):
+        """ Get height for drawing bounding box
+        """
+        return self._height
+        
+    def GetX(self):
+        """ Get X position for drawing bounding box
+        """
+        return self._x
+        
+    def GetY(self):
+        """ Get Y position for drawing bounding box
+        """
+        return self._y
+        

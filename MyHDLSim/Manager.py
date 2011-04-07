@@ -2,7 +2,7 @@ import wx
 import wx.lib.ogl as ogl
 from myhdl import Signal, Simulation, delay, instance
 from MyHDLSim.Wrappers.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
-from MyHDLSim.Module import Module
+from MyHDLSim.Module import Module, EVT_MODULE_MOVE
 from MyHDLSim.wxApplication import MainWindow
 
 class Manager:
@@ -10,6 +10,7 @@ class Manager:
     def __init__(self, app):
         self._frame = MainWindow(None, 'Demo')
         self._canvas = self._frame.canvas
+        self._canvas.SetManager(self)
         self._app = app
         
         # top level module
@@ -22,8 +23,9 @@ class Manager:
         self._gates = []
         self._signals = []
         self._signalMap = {}
+        self._moduleMap = {}
         
-        #self._frame.Bind(EVT_SIGNAL_CHANGE, self.OnSignalChange)
+        self._frame.Bind(EVT_MODULE_MOVE, self.OnModuleMove)
         self._canvas.Bind(wx.EVT_CHAR, self.OnKey)
         self._canvas.SetFocus()
         
@@ -45,7 +47,6 @@ class Manager:
         module = Module(self, self._canvas)
         self._modules.append(module)
         return module
-        
     
     def AddSwitch(self, pos, signal, key):
         """ Add a switch to an existing signal
@@ -77,7 +78,7 @@ class Manager:
         self._top.AddAndGate(pos, out, a, b, c, d)
 
     def AddNandGate(self, pos, out, a, b, c = None, d = None):
-        """ Create an NAND gate
+        """ Create a NAND gate
         
         This is a way to allow users to ignore the underlying module
         """
@@ -120,6 +121,8 @@ class Manager:
     
     def AddModule(self, module, pos, name):
         self._top.AddModule(module, pos, name)
+        # map it for lookup by shape object
+        self._moduleMap[module.GetShape()] = module
     
     def Start(self):
         """ Initialize and start the simulator """
@@ -151,7 +154,22 @@ class Manager:
         if (key in map):
             map[key].Toggle()
             self._app.ExitMainLoop()
-        
+    
+    def OnModuleMove(self, e):
+        """ When a module moves (the shape) we need to move its contents
+        e.Shape holds the shape that actually moved
+        We look up the shape against our module dictionary
+        """
+        moduleShape = e.Shape
+        if (moduleShape in self._moduleMap):
+            module = self._moduleMap[moduleShape]
+            module.Move(moduleShape.GetX() - module.GetWidth() / 2,
+                        moduleShape.GetY() - module.GetHeight() / 2)
+    def GetFrame(self):
+        """ Get the frame for event firing
+        """
+        return self._frame
+    
     def _refresh(self):
         for s in self._signals:
             s.Update()
