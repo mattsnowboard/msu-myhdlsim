@@ -16,7 +16,7 @@ class GenericGateShape(ogl.CompositeShape):
             YspaceIns = (80 - 10*numins) / (numins-1)
 
         # Initalize & set up 'In' objects
-        self._inShapes = [ogl.RectangleShape(10,10) for i in range(numins)]
+        self._inShapes = [ogl.RectangleShape(10, 10) for i in range(numins)]
         for ob in self._inShapes:
             self.AddChild(ob)
             canvas.ConnectWires(self._gate, ob)
@@ -28,8 +28,6 @@ class GenericGateShape(ogl.CompositeShape):
         if (numins > 1): 
             for q in range(numins):
                 self._inShapes[q-1].SetY((10 + YspaceIns)*(q) - 35)
-                self._inShapes[q-1].AddText(q-1)
-
 
         # Connect and setup 'Out' object
         self.AddChild(outshape)
@@ -82,7 +80,7 @@ class GenericGateWrapper:
         drawManager -- class that knows how to draw the shapes and draw lines between them
         """
         for i in range(len(self._inSignals)):
-            drawManager.ConnectWires(self._shape._inShapes[i-1], self._inSignals[i-1].GetShape())
+            drawManager.ConnectWires(self._shape._inShapes[i-1], self._inSignals[i].GetShape())
         """for s in self._signals:
             if (s != None):
                 drawManager.ConnectWires(self._shape._gate, s.GetShape())"""
