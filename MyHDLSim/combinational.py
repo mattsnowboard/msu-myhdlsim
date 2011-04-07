@@ -54,6 +54,24 @@ def Or(f, a, b, c = Signal(0), d = Signal(0)):
 
     return logic
 
+def Nor(f, a, b, c = Signal(0), d = Signal(0)):
+
+    """ NOR gate.
+    
+    f -- output
+    a, b -- data inputs
+
+    """
+
+    @always_comb
+    def logic():
+        if (a == None or b == None or c == None or d == None):
+            f.next = None
+        else:
+            f.next = not( a or b or c or d )
+
+    return logic
+
 def Not(f, a):
 
     """ NOT gate.
@@ -69,6 +87,42 @@ def Not(f, a):
             f.next = None
         else:
             f.next = not a
+
+    return logic
+
+def Xor(f, a, b, c = Signal(0), d = Signal(0)):
+
+    """ XOR gate.
+
+    f -- output
+    a,b -- data inputs
+
+    """
+
+    @always_comb
+    def logic():
+        if (a == None or b == None or c == None or d == None):
+            f.next = None
+        else:
+            f.next = (a ^ b ^ c ^ d)
+
+    return logic
+
+def Nxor(f, a, b, c = Signal(0), d = Signal(0)):
+
+    """ NXOR gate.
+    
+    f -- output
+    a, b -- data inputs
+
+    """
+
+    @always_comb
+    def logic():
+        if (a == None or b == None or c == None or d == None):
+            f.next = None
+        else:
+            f.next = not(a ^ b ^ c ^ d)
 
     return logic
 

@@ -1,7 +1,11 @@
 from MyHDLSim.Wrappers.SignalWrapper import SignalWrapper
 from MyHDLSim.Wrappers.NotGateWrapper import NotGateWrapper
 from MyHDLSim.Wrappers.AndGateWrapper import AndGateWrapper
+from MyHDLSim.Wrappers.NandGateWrapper import NandGateWrapper
 from MyHDLSim.Wrappers.OrGateWrapper import OrGateWrapper
+from MyHDLSim.Wrappers.NorGateWrapper import NorGateWrapper
+from MyHDLSim.Wrappers.XorGateWrapper import XorGateWrapper
+from MyHDLSim.Wrappers.NxorGateWrapper import NxorGateWrapper
 from myhdl import always_comb
 
 class Module:
@@ -76,7 +80,7 @@ class Module:
         self._addInstance(gate)
 
     def AddNandGate(self, pos, out, a, b, c = None, d = None):
-        """ Create an AND gate
+        """ Create an NAND gate
         
         """
         gate = NandGateWrapper(self._canvas,
@@ -100,6 +104,19 @@ class Module:
                              self.SignalToPort(c),
                              self.SignalToPort(d))
         self._addInstance(gate)
+
+    def AddNorGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an NOR gate
+        
+        """
+        gate = NorGateWrapper(self._canvas,
+                             pos[0], pos[1],
+                             self.SignalToPort(out),
+                             self.SignalToPort(a),
+                             self.SignalToPort(b),
+                             self.SignalToPort(c),
+                             self.SignalToPort(d))
+        self._addInstance(gate)
         
     def AddNotGate(self, pos, out, a):
         """ Create a NOT gate
@@ -109,6 +126,32 @@ class Module:
                               pos[0], pos[1],
                               self.SignalToPort(out),
                               self.SignalToPort(a))
+        self._addInstance(gate)
+
+    def AddXorGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an XOR gate
+        
+        """
+        gate = XorGateWrapper(self._canvas,
+                             pos[0], pos[1],
+                             self.SignalToPort(out),
+                             self.SignalToPort(a),
+                             self.SignalToPort(b),
+                             self.SignalToPort(c),
+                             self.SignalToPort(d))
+        self._addInstance(gate)
+
+    def AddNxorGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an NXOR gate
+        
+        """
+        gate = NxorGateWrapper(self._canvas,
+                             pos[0], pos[1],
+                             self.SignalToPort(out),
+                             self.SignalToPort(a),
+                             self.SignalToPort(b),
+                             self.SignalToPort(c),
+                             self.SignalToPort(d))
         self._addInstance(gate)
     
     def AddModule(self, module, pos, name):

@@ -77,7 +77,7 @@ class Manager:
         self._top.AddAndGate(pos, out, a, b, c, d)
 
     def AddNandGate(self, pos, out, a, b, c = None, d = None):
-        """ Create an AND gate
+        """ Create an NAND gate
         
         This is a way to allow users to ignore the underlying module
         """
@@ -89,6 +89,13 @@ class Manager:
         This is a way to allow users to ignore the underlying module
         """
         self._top.AddOrGate(pos, out, a, b, c, d)
+
+    def AddNorGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an NOR gate
+        
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddNorGate(pos, out, a, b, c, d)
         
     def AddNotGate(self, pos, out, a):
         """ Create a NOT gate
@@ -96,6 +103,20 @@ class Manager:
         This is a way to allow users to ignore the underlying module
         """
         self._top.AddNotGate(pos, out, a)
+
+    def AddXorGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an XOR gate
+        
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddXorGate(pos, out, a, b, c, d)
+
+    def AddNxorGate(self, pos, out, a, b, c = None, d = None):
+        """ Create an NXOR gate
+        
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddNxorGate(pos, out, a, b, c, d)
     
     def AddModule(self, module, pos, name):
         self._top.AddModule(module, pos, name)

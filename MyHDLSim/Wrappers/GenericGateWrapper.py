@@ -28,6 +28,7 @@ class GenericGateShape(ogl.CompositeShape):
         if (numins > 1): 
             for q in range(numins):
                 self._inShapes[q-1].SetY((10 + YspaceIns)*(q) - 35)
+                self._inShapes[q-1].AddText(q-1)
 
 
         # Connect and setup 'Out' object
