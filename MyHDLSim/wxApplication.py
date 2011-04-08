@@ -9,11 +9,17 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
         Needed to make resizing work
     """
     def __init__(self, canvas, manager):
+        """
+
+        canvas: we need this for a lot of calls
+        manager: used to pass events
+        """
         ogl.ShapeEvtHandler.__init__(self)
         self._canvas = canvas
         self._manager = manager
 
     def OnLeftClick(self, x, y, keys=0, attachment=0):
+        """ Used for item selection """
         shape = self.GetShape()
         canvas = shape.GetCanvas()
         dc = wx.ClientDC(canvas)
@@ -45,65 +51,87 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
                 canvas.Refresh(False)
     
     def OnSizingEndDragLeft(self, pt, x, y, keys, attch):
+        """ Used for resize to clear artifacts """
         ogl.ShapeEvtHandler.OnSizingEndDragLeft(self, pt, x, y, keys, attch)
         # refresh to clear artifacts when shrinking
         self.GetShape().GetCanvas().Refresh(False)
     
     def OnEndDragLeft(self, x, y, keys=0, attachment=0):
+        """ Used to make a module move its contents
+
+        @todo: Remove this?
+        """
         shape = self.GetShape()
         ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
         # module background moves all contents
-        if shape in self._canvas.modules:
+        modules = self._canvas.GetModules()
+        if shape in modules:
             evt = ModuleMoveEvent(Shape = shape)
             wx.PostEvent(self._manager.GetFrame(), evt)
             # refresh to clear artifacts when moving a module
             self.GetShape().GetCanvas().Refresh(False)
+        # drag should also select
         if not shape.Selected():
             self.OnLeftClick(x, y, keys, attachment)
 
 class MyHDLCanvas(ogl.ShapeCanvas):
+    """ Custom canvas class to hold our shapes """
     def __init__(self, parent, frame):
+        """ Creates the canvas and empty lists """
         ogl.ShapeCanvas.__init__(self, parent)
         
-        self.frame = frame
-        self.manager = None
+        self._frame = frame
+        self._manager = None
         self.SetBackgroundColour("LIGHT BLUE")
         self.SetSize((800, 600))
-        self.diagram = ogl.Diagram()
-        self.SetDiagram(self.diagram)
-        self.diagram.SetCanvas(self)
-        self.gates = []
-        self.modules = []
-        self.signals = []
+        self._diagram = ogl.Diagram()
+        self.SetDiagram(self._diagram)
+        self._diagram.SetCanvas(self)
+        self._gates = []
+        self._modules = []
+        self._signals = []
+        self._connections = []
         
     def SetManager(self, manager):
-        """ This is needed for some event handling
+        """ This is needed for some event handling, but can't set on init
         """
-        self.manager = manager
+        self._manager = manager
     
     def AddMyHDLGate(self, shape, pen = wx.BLACK_PEN, brush = wx.LIGHT_GREY_BRUSH):
+        """ Add a gate to the diagram and register its events
+
+        return: the shape just in case?
+        """
         shape.SetCanvas(self)
         if pen:    shape.SetPen(pen)
         if brush:  shape.SetBrush(brush)
-        self.diagram.AddShape(shape)
+        self._diagram.AddShape(shape)
         shape.Show(True)
-        self.RegisterEvents(shape)
+        self._RegisterEvents(shape)
         
-        self.gates.append(shape)
+        self._gates.append(shape)
         return shape
         
     def AddMyHDLModule(self, shape, pen = wx.BLACK_PEN, brush = wx.WHITE_BRUSH):
+        """ Add a module to the diagram and register its events
+
+        return: the shape just in case?
+        """
         shape.SetCanvas(self)
         if pen:    shape.SetPen(pen)
         if brush:  shape.SetBrush(brush)
-        self.diagram.InsertShape(shape)
+        self._diagram.AddShape(shape)
         shape.Show(True)
-        self.RegisterEvents(shape)
+        self._RegisterEvents(shape)
         
-        self.modules.append(shape)
+        self._modules.append(shape)
         return shape
         
     def AddMyHDLSignal(self, shape, x, y):
+        """ Add a signal to the diagram and register its events
+
+        Moves it to a location x,y
+        """
         if isinstance(shape, ogl.CompositeShape):
             dc = wx.ClientDC(self)
             self.PrepareDC(dc)
@@ -111,27 +139,44 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         shape.SetCanvas(self)
         shape.SetX(x)
         shape.SetY(y)
-        self.diagram.AddShape(shape)
+        self._diagram.AddShape(shape)
         shape.Show(True)
-        self.RegisterEvents(shape)
+        self._RegisterEvents(shape)
         
-        self.signals.append(shape)
+        self._signals.append(shape)
     
-    def RegisterEvents(self, shape):
-        evthandler = MyEvtHandler(self, self.manager)
+    def _RegisterEvents(self, shape):
+        """ Each shape must have event handler """
+        evthandler = MyEvtHandler(self, self._manager)
         evthandler.SetShape(shape)
         evthandler.SetPreviousHandler(shape.GetEventHandler())
         shape.SetEventHandler(evthandler)
+
+    def GetModules(self):
+        """ Access the module list """
+        return self._modules
     
     def ConnectWires(self, shapeA, shapeB):
-        line = ogl.LineShape()
-        line.SetCanvas(self)
-        line.SetPen(wx.BLACK_PEN)
-        line.SetBrush(wx.BLACK_BRUSH)
-        line.MakeLineControlPoints(2)
-        shapeA.AddLine(line, shapeB)
-        self.diagram.AddShape(line)
-        line.Show(True)
+        """ Connect wires once everything is ready
+        Actual connecting is deferred
+
+        This just adds to a list of things to connect at the end
+        because shapes have not yet been added
+        """
+        self._connections.append((shapeA, shapeB))
+
+    def ConnectAllWires(self):
+        """ Connect the pending wires now that shares are added
+        """
+        for (shapeA, shapeB) in self._connections:
+            line = ogl.LineShape()
+            line.SetCanvas(self)
+            line.SetPen(wx.BLACK_PEN)
+            line.SetBrush(wx.BLACK_BRUSH)
+            line.MakeLineControlPoints(2)
+            shapeA.AddLine(line, shapeB)
+            self._diagram.AddShape(line)
+            line.Show(True)
         
 class MainWindow(wx.Frame):
     def __init__(self, parent, title):
@@ -153,25 +198,30 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         
         #sizers
-        self.buttonToolbar = wx.BoxSizer(wx.HORIZONTAL)
-        self.buttons = []
+        self._buttonToolbar = wx.BoxSizer(wx.HORIZONTAL)
+        self._buttons = []
         for i in range(0, 6):
-            self.buttons.append(wx.Button(self, -1, "Button &"+str(i)))
-            self.buttonToolbar.Add(self.buttons[i], 1, wx.EXPAND)
+            self._buttons.append(wx.Button(self, -1, "Button &"+str(i)))
+            self._buttonToolbar.Add(self._buttons[i], 1, wx.EXPAND)
         
-        self.canvas = MyHDLCanvas(self, self)
+        self._canvas = MyHDLCanvas(self, self)
         
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.buttonToolbar, 0, wx.EXPAND)
-        self.sizer.Add(self.canvas, 1, wx.EXPAND)
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Add(self._buttonToolbar, 0, wx.EXPAND)
+        self._sizer.Add(self._canvas, 1, wx.EXPAND)
         
-        self.SetSizer(self.sizer)
+        self.SetSizer(self._sizer)
         self.SetAutoLayout(1)
-        self.sizer.Fit(self)
+        self._sizer.Fit(self)
         
         self.Show(True)
         
-        self.exit = False
+        self._exit = False
+
+    def GetCanvas(self):
+        """ Access to the canvas to draw on
+        """
+        return self._canvas
     
     def OnAbout(self, e):
         dlg = wx.MessageDialog(self, "Trying to hook MyHDL up to wxPython", "About Demo", wx.OK)
@@ -180,5 +230,7 @@ class MainWindow(wx.Frame):
     
     def OnExit(self, e):
         self.Close(True)
-        self.exit = True
-        
+        self._exit = True
+
+    def IsExit(self):
+        return self._exit

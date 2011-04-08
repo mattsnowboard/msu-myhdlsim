@@ -47,5 +47,5 @@ class AndGateWrapper(GenericGateWrapper):
         #self._shape = ogl.RectangleShape(100, 100)
         #self._shape.SetX(x)
         #self._shape.SetY(y)
-        drawManager.AddMyHDLGate(self._shape)
+        #drawManager.AddMyHDLGate(self._shape)
         GenericGateWrapper._connectWires(self, drawManager)
