@@ -1,10 +1,10 @@
 """ Run all unit tests. """
 
 
-import test_And, test_Or, test_Not, test_MUX, test_Decoder, test_tff, test_dff,\
+import test_And, test_Nand, test_Or, test_Nor, test_Not, test_Xor, test_Nxor, test_MUX, test_Decoder, test_tff, test_dff,\
        test_Counter, test_Register
 
-modules = (test_And, test_Or, test_Not, test_MUX, test_Decoder, test_tff, 
+modules = (test_And, test_Nand, test_Or, test_Nor, test_Not, test_Xor, test_Nxor, test_MUX, test_Decoder, test_tff, 
            test_dff, test_Counter, test_Register
           )
 
