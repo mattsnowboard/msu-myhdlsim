@@ -65,6 +65,10 @@ class GenericGateWrapper:
         drawManager.PrepareDC(dc)
 
         self._shape.Move(dc, x, y)
+
+        # store these values in case we have to recalculate
+        self._x = x
+        self._y = y
     
     """def _addSignal(self, signal):
         """""" Add signal
@@ -92,6 +96,19 @@ class GenericGateWrapper:
     def GetShape(self):
         """ Get the OGL shape for manipulation """
         return self._shape
+
+    def GetX(self):
+        """ Desired x location """
+        return self._x
+
+    def GetY(self):
+        """ Desicred y location """
+        return self._y
+
+    def SetPos(self, x, y):
+        """ Set desired location """
+        self._x = x
+        self._y = y
 
 def PurgeList(a):
     count = a.count(None)

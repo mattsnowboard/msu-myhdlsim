@@ -8,8 +8,13 @@ from MyHDLSim.wxApplication import MainWindow
 class Manager:
     """ This class will manage the Signals and Gates and Simulator """
     def __init__(self, app):
+        """ Given an application, create the window and canvas
+
+        Creates a top level module
+        Binds some events
+        """
         self._frame = MainWindow(None, 'Demo')
-        self._canvas = self._frame.canvas
+        self._canvas = self._frame.GetCanvas()
         self._canvas.SetManager(self)
         self._app = app
         
@@ -120,19 +125,27 @@ class Manager:
         self._top.AddNxorGate(pos, out, a, b, c, d)
     
     def AddModule(self, module, pos, name):
+        """ Add a module
+        
+        This is a way to allow users to ignore the underlying module
+        """
         self._top.AddModule(module, pos, name)
         # map it for lookup by shape object
         self._moduleMap[module.GetShape()] = module
     
     def Start(self):
         """ Initialize and start the simulator """
+
+        # we have deferred adding anything to the canvas until now
+        self._top.Render()
+        self._canvas.ConnectAllWires()
         
         # we need a trick to run the simulator and the main loop...
         
         def EventLoop():
             @instance
             def inst():
-                while(self._frame and not self._frame.exit):
+                while(self._frame and not self._frame.IsExit()):
                     yield delay(1)
                     self._refresh()
                     self._app.MainLoop()
@@ -149,6 +162,7 @@ class Manager:
         self._simulator.run()
 
     def OnKey(self, e):
+        """ Switch toggling by keypress """
         key = e.GetKeyCode()
         map = self._signalMap
         if (key in map):
@@ -160,17 +174,22 @@ class Manager:
         e.Shape holds the shape that actually moved
         We look up the shape against our module dictionary
         """
-        moduleShape = e.Shape
-        if (moduleShape in self._moduleMap):
-            module = self._moduleMap[moduleShape]
-            module.Move(moduleShape.GetX() - module.GetWidth() / 2,
-                        moduleShape.GetY() - module.GetHeight() / 2)
+##        moduleShape = e.Shape
+##        if (moduleShape in self._moduleMap):
+##            module = self._moduleMap[moduleShape]
+##            module.Move(moduleShape.GetX() - module.GetWidth() / 2,
+##                        moduleShape.GetY() - module.GetHeight() / 2)
+        ## We don't need this if we use children shapes
+        pass
+            
     def GetFrame(self):
         """ Get the frame for event firing
         """
         return self._frame
     
     def _refresh(self):
+        """ Refresh the canvas after updating signal shapes
+        """
         for s in self._signals:
             s.Update()
         self._canvas.Refresh(False)
