@@ -8,6 +8,7 @@ from MyHDLSim.Wrappers.OrGateWrapper import OrGateWrapper
 from MyHDLSim.Wrappers.NorGateWrapper import NorGateWrapper
 from MyHDLSim.Wrappers.XorGateWrapper import XorGateWrapper
 from MyHDLSim.Wrappers.NxorGateWrapper import NxorGateWrapper
+from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateShape
 from myhdl import always_comb
 
 # The events that wx side will listen for, used to move contents of a Module
@@ -24,6 +25,8 @@ class ModuleShape(ogl.CompositeShape):
         outputPorts: shapes to draw as output ports (right side)
         """
         ogl.CompositeShape.__init__(self)
+
+        print "DO NOT USE ME*****************************************"
 
         self.SetCanvas(canvas)
 
@@ -268,9 +271,9 @@ class Module:
         module._setBounds()
         # create bounding box
         boxShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
-        module._shape = ModuleShape(self._canvas, boxShape, module._inPorts, module._outPorts)
+        module._shape = GenericGateShape(self._canvas, module._inPorts, module._outPorts, boxShape, False)
         # connect outer wires
-        for port in module._shape._inShapes:
+        for port in module._shape._leftInShapes:
             signal = module._portShapeMap[port]
             self._canvas.ConnectWires(signal.GetShape(), port)
         dc = wx.ClientDC(self._canvas)

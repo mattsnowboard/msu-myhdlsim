@@ -2,48 +2,68 @@ import wx
 import wx.lib.ogl as ogl
 
 class GenericGateShape(ogl.CompositeShape):
-    def __init__(self, canvas, numins, outshape, gateshape):
+    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True):
         ogl.CompositeShape.__init__(self)
         
         self.SetCanvas(canvas)
         
         # Sets main gate object from gate wrapper
-        self._gate = gateshape
-        self.AddChild(self._gate)
+        self._main = mainShape
+        self.AddChild(self._main)
 
         # Determine spacing
-        if (numins != 1):
-            YspaceIns = (80 - 10*numins) / (numins-1)
+        numLeftIn = len(inLeftShapes)
+        numOut = len(outShapes)
+        shapeHeight = self._main.GetBoundingBoxMin()[1]
+        if isinstance(self._main, ogl.CompositeShape):
+            shapeHeight = self._main.GetHeight()        
+        leftInHeight = 0
+        if (numLeftIn > 0):
+            leftInHeight = inLeftShapes[0].GetHeight()
+        if (numLeftIn > 1):
+            YspaceLeftIns = (shapeHeight - leftInHeight * numLeftIn) / (numLeftIn)
+        outHeight = 0
+        if (numOut > 0):
+            outHeight = outShapes[0].GetHeight()
+        if (numOut > 1):
+            YspaceOuts = (shapeHeight - outHeight * numOut) / (numOut)
 
         # Initalize & set up 'In' objects
-        self._inShapes = [ogl.RectangleShape(10, 10) for i in range(numins)]
-        for ob in self._inShapes:
+        self._leftInShapes = inLeftShapes
+        for ob in self._leftInShapes:
             self.AddChild(ob)
-            canvas.ConnectWires(self._gate, ob)
+            if doConnect:
+                canvas.ConnectWires(self._main, ob)
             ob.SetDraggable(False)
 
-        constraintIns = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF, self._gate, self._inShapes)
-        constraintIns.SetSpacing(10, 0)
-        self.AddConstraint(constraintIns)
-        if (numins > 1): 
-            for q in range(numins):
-                self._inShapes[q-1].SetY((10 + YspaceIns)*(q) - 35)
+        constraintLeftIns = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF, self._main, self._leftInShapes)
+        constraintLeftIns.SetSpacing(10, 0)
+        self.AddConstraint(constraintLeftIns)
+        if (numLeftIn > 1): 
+            for q in range(numLeftIn):
+                self._leftInShapes[q].SetY(YspaceLeftIns / 2 + (YspaceLeftIns + leftInHeight) * q - (shapeHeight / 2 - leftInHeight / 2))
 
         # Connect and setup 'Out' object
-        self.AddChild(outshape)
-        canvas.ConnectWires(self._gate, outshape)
-        outshape.SetDraggable(False)
-        constraintOut = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._gate, [outshape])
-        constraintOut.SetSpacing(10,0)
-        self.AddConstraint(constraintOut)
+        self._outShapes = outShapes
+        for ob in self._outShapes:
+            self.AddChild(ob)
+            if doConnect:
+                canvas.ConnectWires(self._main, ob)
+            ob.SetDraggable(False)
 
+        constraintOuts = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._main, self._outShapes)
+        constraintOuts.SetSpacing(10, 0)
+        self.AddConstraint(constraintOuts)
+        if (numOut > 1): 
+            for q in range(numOut):
+                self._outShapes[q].SetY(YspaceOuts / 2 + (YspaceOuts + outHeight) * q - (shapeHeight / 2 - outHeight / 2))
 
         self.Recompute()
         
-        self._gate.SetDraggable(False)
+        self._main.SetDraggable(False)
 
         # If we don't do this the shape will take all left-clicks for itself
-        self._gate.SetSensitivityFilter(0)
+        self._main.SetSensitivityFilter(0)
 
 
 class GenericGateWrapper:
@@ -52,15 +72,18 @@ class GenericGateWrapper:
     It can be any type of gate and this handles common code like connecting wires
     """
     
-    def __init__(self, drawManager, x, y, ins, gateshape, out):
+    def __init__(self, drawManager, x, y, leftIns, gateshape, out):
         """
         x, y : position of the gate
         """
-        PurgeList(ins)
-        self._inSignals = ins
+        PurgeList(leftIns)
+        self._leftInSignals = leftIns
+
+        leftInShapes = [ogl.RectangleShape(10, 10) for i in leftIns]
+        outShapes = [out.GetShape()]
 	
         # default shape that other classes SHOULD override
-        self._shape = GenericGateShape(drawManager, len(ins), out.GetShape(), gateshape)
+        self._shape = GenericGateShape(drawManager, leftInShapes, outShapes, gateshape)
         dc = wx.ClientDC(drawManager)
         drawManager.PrepareDC(dc)
 
@@ -83,11 +106,11 @@ class GenericGateWrapper:
         
         drawManager -- class that knows how to draw the shapes and draw lines between them
         """
-        for i in range(len(self._inSignals)):
-            drawManager.ConnectWires(self._shape._inShapes[i-1], self._inSignals[i].GetShape())
+        for i in range(len(self._leftInSignals)):
+            drawManager.ConnectWires(self._shape._leftInShapes[i], self._leftInSignals[i].GetShape())
         """for s in self._signals:
             if (s != None):
-                drawManager.ConnectWires(self._shape._gate, s.GetShape())"""
+                drawManager.ConnectWires(self._shape._main, s.GetShape())"""
         
     def GetInstance(self):
         """ Get instance for simulator """
