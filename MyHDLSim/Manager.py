@@ -192,6 +192,7 @@ class Manager:
         """
         for s in self._signals:
             s.Update()
+        self._top.Update()
         self._canvas.Refresh(False)
        
        

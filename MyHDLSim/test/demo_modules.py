@@ -5,11 +5,11 @@ import MyHDLSim.Manager
 def SubModule(manager, X, Y, Out):
     module = manager.CreateModule()
 
-    module.AddPort((0,0), X, True, "X")
-    module.AddPort((0,50), Y, True, "Y")
-    module.AddPort((100,0), Out, False, "Out")
+    portX = module.AddPort((0,0), X, True, "X")
+    portY = module.AddPort((0,50), Y, True, "Y")
+    portO = module.AddPort((100,0), Out, False, "Out")
 
-    module.AddOrGate((0,0), Out, X, Y)
+    module.AddOrGate((0,0), portO, portX, portY)
 
     return module
 
@@ -30,7 +30,7 @@ def MyModule(manager, signalA, signalB, signalOut):
     subModule = SubModule(manager, portB, notA, orWire)
     module.AddModule(subModule, (160, 50), "Sub")
     
-    module.AddAndGate((320,0), signalOut, notA, orWire)
+    module.AddAndGate((320,0), portO, notA, orWire)
     
     #module.Create()
     return module

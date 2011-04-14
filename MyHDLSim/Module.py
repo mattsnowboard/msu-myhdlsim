@@ -110,6 +110,8 @@ class Module:
         # images for ports
         self._inPorts = []
         self._outPorts = []
+        # keeps the inner signals which are used by modules
+        self._outPortsInner = []
     
     def AddPort(self, pos, signal, is_input, label):
         """ Add a port to interface with the module
@@ -123,12 +125,8 @@ class Module:
         """
         if (is_input):
             port = SignalWrapper(self._canvas, signal.GetSignal().val, pos[0], pos[1])
-            #port.SetProbe(self._canvas, signal, label)
             port.AddListener(self._manager._frame)
-            port.SetX(pos[0])
-            port.SetY(pos[1])
-            self._inPorts.append(port.GetShape())
-            #self._canvas.AddMyHDLSignal(port.GetShape(), pos[0], pos[1])
+            self._inPorts.append(port)
             #lets map the signal to the port
             self._portmap[signal] = port
             self._portShapeMap[port.GetShape()] = signal
@@ -140,6 +138,23 @@ class Module:
                     output.next = input
                 return logic
             connection = wire(portSignal, signal.GetSignal())
+            self._instances.append(connection)
+            #returned so we can use the underlying signal
+            return port
+        else: #output
+            port = SignalWrapper(self._canvas, signal.GetSignal().val, pos[0], pos[1])
+            port.AddListener(self._manager._frame)
+            self._outPorts.append(signal)
+            self._outPortsInner.append(port)
+            self._portmap[signal] = port
+            self._portShapeMap[signal.GetShape()] = port
+            # wire connection to keep this signal connected to input
+            def wire(output, input):
+                @always_comb
+                def logic():
+                    output.next = input
+                return logic
+            connection = wire(signal.GetSignal(), port.GetSignal())
             self._instances.append(connection)
             #returned so we can use the underlying signal
             return port
@@ -271,9 +286,14 @@ class Module:
         module._setBounds()
         # create bounding box
         boxShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
-        module._shape = GenericGateShape(self._canvas, module._inPorts, module._outPorts, boxShape, False)
+        inPorts = [p.GetShape() for p in module._inPorts]
+        outPorts = [p.GetShape() for p in module._outPorts]
+        module._shape = GenericGateShape(self._canvas, inPorts, outPorts, boxShape, False)
         # connect outer wires
         for port in module._shape._leftInShapes:
+            signal = module._portShapeMap[port]
+            self._canvas.ConnectWires(signal.GetShape(), port)
+        for port in module._shape._outShapes:
             signal = module._portShapeMap[port]
             self._canvas.ConnectWires(signal.GetShape(), port)
         dc = wx.ClientDC(self._canvas)
@@ -419,4 +439,15 @@ class Module:
         """ Get Y position for drawing bounding box
         """
         return self._y
-        
+
+    def Update(self):
+        """ Update all ports and submodules (signal rendering)
+
+        If we don't do this, intermediate shapes don't get updated
+        """
+        for module in self._modules:
+            module.Update()
+        for port in self._inPorts:
+            port.Update()
+        for port in self._outPortsInner:
+            port.Update()

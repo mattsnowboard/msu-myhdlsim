@@ -4,7 +4,6 @@ import wx.lib.ogl as ogl
 class GenericGateShape(ogl.CompositeShape):
     def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True):
         ogl.CompositeShape.__init__(self)
-        
         self.SetCanvas(canvas)
         
         # Sets main gate object from gate wrapper
@@ -16,7 +15,7 @@ class GenericGateShape(ogl.CompositeShape):
         numOut = len(outShapes)
         shapeHeight = self._main.GetBoundingBoxMin()[1]
         if isinstance(self._main, ogl.CompositeShape):
-            shapeHeight = self._main.GetHeight()        
+            shapeHeight = self._main.GetHeight()
         leftInHeight = 0
         if (numLeftIn > 0):
             leftInHeight = inLeftShapes[0].GetHeight()
@@ -54,7 +53,7 @@ class GenericGateShape(ogl.CompositeShape):
         constraintOuts = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._main, self._outShapes)
         constraintOuts.SetSpacing(10, 0)
         self.AddConstraint(constraintOuts)
-        if (numOut > 1): 
+        if (numOut > 1):
             for q in range(numOut):
                 self._outShapes[q].SetY(YspaceOuts / 2 + (YspaceOuts + outHeight) * q - (shapeHeight / 2 - outHeight / 2))
 

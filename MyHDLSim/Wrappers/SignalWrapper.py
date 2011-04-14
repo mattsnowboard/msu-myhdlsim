@@ -132,7 +132,7 @@ class SignalWrapper:
         # Change me if you want something else
         if (self._signal.val == None):
             self._shape.AddText(str(self._signal.val))
-            self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
+            self._shape.SetBrush(wx.Brush("GREY", wx.SOLID))
             self._shape.SetTextColour("BLACK")
         elif (bool(self._signal.val) == False):
             self._shape.AddText(str(bool(self._signal.val)))
