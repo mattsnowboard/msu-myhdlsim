@@ -64,6 +64,17 @@ class GenericGateShape(ogl.CompositeShape):
         # If we don't do this the shape will take all left-clicks for itself
         self._main.SetSensitivityFilter(0)
 
+    def ChangeMain(self, main):
+        """ Set a new Main shape to toggle the look of the shape
+        """
+        if main != None:
+            self.RemoveChild(self._main)
+            self._main = main
+            self.AddChild(self._main)
+            self.Recompute()
+            self._main.SetDraggable(False)
+            self._main.SetSensitivityFilter(0)
+
 
 class GenericGateWrapper:
     """ This class wraps a gate for drawing

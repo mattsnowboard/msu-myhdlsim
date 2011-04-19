@@ -27,4 +27,8 @@ manager.AddNotGate((400, 100), Out, b)
 
 manager.AddProbe((750, 300), Out, 'out')
 
+mod.Render()
+mod.ShowDetails(False)
+#mod.ShowDetails(True)
+
 manager.Start()

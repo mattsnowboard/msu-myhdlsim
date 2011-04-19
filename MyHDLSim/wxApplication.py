@@ -91,6 +91,8 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         self._modules = []
         self._signals = []
         self._connections = []
+        self._disconnected = []
+        self._removed = []
         
     def SetManager(self, manager):
         """ This is needed for some event handling, but can't set on init
@@ -169,15 +171,59 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         """ Connect the pending wires now that shares are added
         """
         for (shapeA, shapeB) in self._connections:
-            line = ogl.LineShape()
-            line.SetCanvas(self)
-            line.SetPen(wx.BLACK_PEN)
-            line.SetBrush(wx.BLACK_BRUSH)
-            line.MakeLineControlPoints(2)
-            shapeA.AddLine(line, shapeB)
-            self._diagram.AddShape(line)
-            line.Show(True)
-        
+            if (not shapeA in self._removed) and (not shapeB in self._removed):
+                line = ogl.LineShape()
+                line.SetCanvas(self)
+                line.SetPen(wx.BLACK_PEN)
+                line.SetBrush(wx.BLACK_BRUSH)
+                line.MakeLineControlPoints(2)
+                shapeA.AddLine(line, shapeB)
+                self._diagram.AddShape(line)
+                line.Show(True)
+            else:
+                self._disconnected.append((shapeA, shapeB))
+    def ConnectDisconnectedWires(self):
+        for (shapeA, shapeB) in self._disconnected:
+            if (not shapeA in self._removed) and (not shapeB in self._removed):
+                line = ogl.LineShape()
+                line.SetCanvas(self)
+                line.SetPen(wx.BLACK_PEN)
+                line.SetBrush(wx.BLACK_BRUSH)
+                line.MakeLineControlPoints(2)
+                shapeA.AddLine(line, shapeB)
+                self._diagram.AddShape(line)
+                line.Show(True)
+                self._disconnected.remove((shapeA, shapeB))
+
+    def HideGateShape(self, shape):
+        """ When a module wishes to remove a shape
+
+        Need to know not to connect its wires
+        """
+        self._removed.append(shape)
+        for child in shape.GetChildren():
+            self._removed.append(child)
+        self.RemoveShape(shape)
+        shape.Show(False)
+        dc = wx.ClientDC(self)
+        self.PrepareDC(dc)
+        shape.Erase(dc)
+        shape.RemoveFromCanvas(self)
+        shape.Detach()
+        self._diagram.RemoveShape(child)
+        #shape.Delete()
+
+    def ShowGateShape(self, shape):
+        """ When a module wishes to unhide a shape
+
+        Need to know to connect its wires
+        """
+        self._removed.remove(shape)
+        for child in shape.GetChildren():
+            self._removed.remove(child)
+        self.AddShape(shape)
+        self.ConnectDisconnectedWires()
+
 class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(800,600))

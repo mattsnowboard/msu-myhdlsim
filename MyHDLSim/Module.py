@@ -14,70 +14,37 @@ from myhdl import always_comb
 # The events that wx side will listen for, used to move contents of a Module
 ModuleMoveEvent, EVT_MODULE_MOVE = wx.lib.newevent.NewEvent() 
 
-class ModuleShape(ogl.CompositeShape):
-    def __init__(self, canvas, moduleShape, inputPorts, outputPorts):
-        """ Creates a ModuleShape which is a rectangle with port squares
+class ModuleShape(GenericGateShape):
+    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True):
+        """ Creates a ModuleShape which is a rectangle within the GenericGate
 
-        @todo: reuse GenericGateWrapper shape code somehow
         canvas: where to draw shapes
-        moduleShape: main shape (usually rectangle)
-        inputPorts: shapes to draw as input ports (left side)
-        outputPorts: shapes to draw as output ports (right side)
+        width, height: main shape rectangle size
         """
-        ogl.CompositeShape.__init__(self)
+        GenericGateShape.__init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect)
 
-        print "DO NOT USE ME*****************************************"
+        self._hidden = []
 
-        self.SetCanvas(canvas)
+##    def AddChild(self, child, addAfter=None):
+##        """ Overload so we keep a list of children
+##        """
+##        GenericGateShape.AddChild(self, child, addAfter)
+##        self._children.append(child)
+##        
+    def HideModule(self):
+        """ Need to remove children from canvas
+        """
+        for child in self.GetChildren():
+            if isinstance(child, GenericGateShape):
+                self._hidden.append(child)
+                self.GetCanvas().HideGateShape(child)
 
-        self._main = moduleShape
-        #self._main.SetBrush(wx.Brush(wx.Colour(0,0,0,0),wx.TRANSPARENT))
-        self.AddChild(self._main)
-
-        # Determine spacing
-        numIn = len(inputPorts)
-        numOut = len(outputPorts)
-        if (numIn != 1):
-            YspaceIns = (self._main.GetHeight() - 10 * numIn) / (numIn - 1)
-        if (numOut != 1):
-            YspaceOuts = (self._main.GetHeight() - 10 * numOut) / (numOut - 1)
-
-        # Initalize & set up 'In' objects
-        self._inShapes = inputPorts
-        for ob in self._inShapes:
-            self.AddChild(ob)
-            #canvas.ConnectWires(self._main, ob)
-            ob.SetDraggable(False)
-
-        constraintIns = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF, self._main, self._inShapes)
-        constraintIns.SetSpacing(0, 10)
-        self.AddConstraint(constraintIns)
-
-        if (numIn > 1): 
-            for q in range(numIn):
-                self._inShapes[q].SetY(YspaceIns * q - (self._main.GetHeight() / 2 - 10))
-
-        # Initalize & set up 'Out' objects
-        self._outShapes = outputPorts
-        for ob in self._outShapes:
-            self.AddChild(ob)
-            canvas.ConnectWires(self._main, ob)
-            ob.SetDraggable(False)
-
-        constraintOuts = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF, self._main, self._outShapes)
-        constraintOuts.SetSpacing(10, 0)
-        self.AddConstraint(constraintOuts)
-        if (numOut > 1): 
-            for q in range(numOut):
-                self._outShapes[q-1].SetY(-YspaceOuts * q)
-
-
-        self.Recompute()
-        
-        self._main.SetDraggable(False)
-
-        # If we don't do this the shape will take all left-clicks for itself
-        self._main.SetSensitivityFilter(0)
+    def ShowModule(self):
+        """ Need to add children back to canvas
+        """
+        for child in self._hidden:
+            self._hidden.remove(child)
+            self.GetCanvas().ShowGateShape(child)
 
 class Module:
     """ This class will contain wrapped Signals and Gates """
@@ -90,8 +57,11 @@ class Module:
         self._manager = manager
         # @todo Figure out where "canvas" fits in here
         self._canvas = canvas
-        
+
+        self._showInternal = True
         self._shape = None
+        self._completeShape = None
+        self._hiddenShape = None
         
         # positioning
         self._x = self._y = 0
@@ -285,10 +255,14 @@ class Module:
         module.Move(pos[0], pos[1], True)
         module._setBounds()
         # create bounding box
-        boxShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
+        #module._completeShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
+        # module._completeShape = ModuleShape(self._canvas, module.GetWidth(), module.GetHeight())
+        #module._hiddenShape = ModuleShape(self._canvas, module.GetWidth(), module.GetHeight())
         inPorts = [p.GetShape() for p in module._inPorts]
         outPorts = [p.GetShape() for p in module._outPorts]
-        module._shape = GenericGateShape(self._canvas, inPorts, outPorts, boxShape, False)
+        #module._shape = ModuleShape(self._canvas, inPorts, outPorts, module.GetWidth(), module.GetHeight(), False)
+        boxShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
+        module._shape = ModuleShape(self._canvas, inPorts, outPorts, boxShape, False)
         # connect outer wires
         for port in module._shape._leftInShapes:
             signal = module._portShapeMap[port]
@@ -303,6 +277,10 @@ class Module:
                            module.GetX() + module.GetWidth() / 2,
                            module.GetY() + module.GetHeight() / 2,
                            False)
+##        module._hiddenShape.Move(dc,
+##                                 module.GetX() + module.GetWidth() / 2,
+##                                 module.GetY() + module.GetHeight() / 2,
+##                                 False)
         #self._canvas.AddMyHDLModule(module._shape)
         self._modules.append(module)
     
@@ -359,17 +337,18 @@ class Module:
         """
         #if (self._shape != None):
         #    self._canvas.AddMyHDLModule(self._shape)
-        for module in self._modules:
-            self._canvas.AddMyHDLModule(module._shape)
-        for gate in self._gates:
-            self._canvas.AddMyHDLGate(gate.GetShape())
-            if (self._shape != None):
-                self._shape.AddChild(gate.GetShape())
-        for module in self._modules:
-            module.Render()
-            if (self._shape != None):
-                self._shape.AddChild(module.GetShape())
-        self._rendered = True
+        if not self._rendered:
+            for module in self._modules:
+                self._canvas.AddMyHDLModule(module._shape)
+            for gate in self._gates:
+                self._canvas.AddMyHDLGate(gate.GetShape())
+                if (self._shape != None):
+                    self._shape.AddChild(gate.GetShape())
+            for module in self._modules:
+                module.Render()
+                if (self._shape != None):
+                    self._shape.AddChild(module.GetShape())
+            self._rendered = True
     
     def GetInstances(self):
         """ Get MyHDL instances for the simulator (recursively get contents)
@@ -419,6 +398,20 @@ class Module:
         """ Get the shape for this Module
         """
         return self._shape
+
+    def ShowDetails(self, show = True):
+        """ Toggles whether we show the inner workings or the simple shape
+        """
+        if show != self._showInternal:
+            self._showInternal = show
+            if self._showInternal:
+                self._shape.ShowModule()
+                #self._shape.ChangeMain(self._completeShape)
+                #self._completeShape.ShowModule()
+            else:
+                self._shape.HideModule()
+                #self._shape.ChangeMain(self._hiddenShape)
+                #self._completeShape.HideModule()
         
     def GetWidth(self):
         """ Get width for drawing bounding box
