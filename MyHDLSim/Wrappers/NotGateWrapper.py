@@ -19,6 +19,7 @@ class NotGateShape(ogl.PolygonShape):
         self.Create(points)
         self.CalculatePolygonCentre
         self.AddText("Not")
+        self.SetRegionName("Not")
 
 class NotGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.NOT function for drawing """

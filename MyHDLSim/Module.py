@@ -36,15 +36,34 @@ class ModuleShape(GenericGateShape):
         """
         for child in self.GetChildren():
             if isinstance(child, GenericGateShape):
+                child.SetBrushForChildren(wx.TRANSPARENT_BRUSH)
+                child.SetPenForChildren(wx.TRANSPARENT_PEN)
                 self._hidden.append(child)
-                self.GetCanvas().HideGateShape(child)
+                child._main.ClearText()
+                for wire in child.GetLines():
+                    wire.SetPen(wx.TRANSPARENT_PEN)
+                    wire.SetBrush(wx.TRANSPARENT_BRUSH)
+                for child2 in child.GetChildren():
+                    for wire in child2.GetLines():
+                        wire.SetPen(wx.TRANSPARENT_PEN)
+                        wire.SetBrush(wx.TRANSPARENT_BRUSH)
 
     def ShowModule(self):
         """ Need to add children back to canvas
         """
         for child in self._hidden:
-            self._hidden.remove(child)
-            self.GetCanvas().ShowGateShape(child)
+            if isinstance(child, GenericGateShape):
+                child.SetBrushForChildren(wx.WHITE_BRUSH)
+                child.SetPenForChildren(wx.BLACK_PEN)
+                child._main.AddText(child._main.GetRegionName())
+                for wire in child.GetLines():
+                    wire.SetPen(wx.BLACK_PEN)
+                    wire.SetBrush(wx.BLACK_BRUSH)
+                for child2 in child.GetChildren():
+                    for wire in child2.GetLines():
+                        wire.SetPen(wx.BLACK_PEN)
+                        wire.SetBrush(wx.BLACK_BRUSH)
+        self._hidden = []
 
 class Module:
     """ This class will contain wrapped Signals and Gates """
@@ -282,6 +301,7 @@ class Module:
 ##                                 module.GetY() + module.GetHeight() / 2,
 ##                                 False)
         #self._canvas.AddMyHDLModule(module._shape)
+        module._shape._main.SetRegionName(name)
         self._modules.append(module)
     
     def Move(self, x, y, initial = False):
@@ -349,6 +369,11 @@ class Module:
                 if (self._shape != None):
                     self._shape.AddChild(module.GetShape())
             self._rendered = True
+
+    def GetModules(self):
+        """ Get the children modules
+        """
+        return self._modules
     
     def GetInstances(self):
         """ Get MyHDL instances for the simulator (recursively get contents)
@@ -406,10 +431,12 @@ class Module:
             self._showInternal = show
             if self._showInternal:
                 self._shape.ShowModule()
+                self._shape._main.ClearText()
                 #self._shape.ChangeMain(self._completeShape)
                 #self._completeShape.ShowModule()
             else:
                 self._shape.HideModule()
+                self._shape._main.AddText(self._shape._main.GetRegionName())
                 #self._shape.ChangeMain(self._hiddenShape)
                 #self._completeShape.HideModule()
         

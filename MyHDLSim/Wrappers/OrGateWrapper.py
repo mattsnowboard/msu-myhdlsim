@@ -18,6 +18,7 @@ class OrGateShape(ogl.PolygonShape):
         self.Create(points)
         self.CalculatePolygonCentre
         self.AddText("Or")
+        self.SetRegionName("Or")
 
 class OrGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.OR function for drawing """

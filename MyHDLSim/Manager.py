@@ -29,6 +29,10 @@ class Manager:
         self._signals = []
         self._signalMap = {}
         self._moduleMap = {}
+
+        # this is to help with showing/hiding modules
+        self._moduleHierarchy = []
+        self._displayDepth = 0
         
         self._frame.Bind(EVT_MODULE_MOVE, self.OnModuleMove)
         self._canvas.Bind(wx.EVT_CHAR, self.OnKey)
@@ -139,6 +143,12 @@ class Manager:
         # we have deferred adding anything to the canvas until now
         self._top.Render()
         self._canvas.ConnectAllWires()
+
+        # this will build a list of lists, from highest to lowest level
+        # of modules so we can show/hide them all
+        self._moduleHierarchy.append([]) # empty top node
+        self._buildHierarchy(self._top, 1)
+        self._displayDepth = len(self._moduleHierarchy) - 1
         
         # we need a trick to run the simulator and the main loop...
         
@@ -161,13 +171,38 @@ class Manager:
 
         self._simulator.run()
 
+    def _buildHierarchy(self, module, level):
+        """ Recursive calls to build the module hierarchy list
+        """
+        for m in module.GetModules():
+            if level + 1 > len(self._moduleHierarchy):
+                self._moduleHierarchy.append([])
+            self._moduleHierarchy[level].append(m)
+            self._buildHierarchy(m, level + 1)
+
     def OnKey(self, e):
-        """ Switch toggling by keypress """
+        """ Switch toggling by keypress
+        Also handles "zooming" level of detail to display
+        """
         key = e.GetKeyCode()
         map = self._signalMap
         if (key in map):
             map[key].Toggle()
             self._app.ExitMainLoop()
+        elif key in [wx.WXK_PRIOR, wx.WXK_PAGEUP]:
+            tempDepth = max([self._displayDepth - 1, 0])
+            if (tempDepth != self._displayDepth):
+                for m in self._moduleHierarchy[self._displayDepth]:
+                    m.ShowDetails(False)
+            self._displayDepth = tempDepth
+            self._refresh()
+        elif key in [wx.WXK_NEXT, wx.WXK_PAGEDOWN]:
+            tempDepth = min([self._displayDepth + 1, len(self._moduleHierarchy) - 1])
+            if (tempDepth != self._displayDepth):
+                for m in self._moduleHierarchy[tempDepth]:
+                    m.ShowDetails(True)
+            self._displayDepth = tempDepth
+            self._refresh()
     
     def OnModuleMove(self, e):
         """ When a module moves (the shape) we need to move its contents

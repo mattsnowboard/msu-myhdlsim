@@ -17,6 +17,7 @@ class AndGateShape(ogl.PolygonShape):
         self.Create(points)
         self.CalculatePolygonCentre
         self.AddText("And")
+        self.SetRegionName("And")
 
 class AndGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.AND function for drawing """

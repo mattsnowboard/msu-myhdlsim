@@ -24,6 +24,8 @@ class Mux41Wrapper:
         self._shape.SetX(x)
         self._shape.SetY(y)
         self._shape.AddText("MUX 41")
+        self.SetRegionName("MUX 41")
+        # @todo Should this code (below) be here?
         drawManager.AddMyHDLGate(self._shape)
         self._connectWires(drawManager)
     

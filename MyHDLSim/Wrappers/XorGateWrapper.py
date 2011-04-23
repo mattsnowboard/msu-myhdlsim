@@ -29,6 +29,7 @@ class XorGateShape(ogl.CompositeShape):
         shape2.Create(points2)
 
         self.AddText("Xor")
+        self.SetRegionName("Xor")
 
         self.AddChild(shape1)
         self.AddChild(shape2)

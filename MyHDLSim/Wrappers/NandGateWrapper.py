@@ -23,6 +23,7 @@ class NandGateShape(ogl.PolygonShape):
         self.Create(points)
         self.CalculatePolygonCentre
         self.AddText("Nand")
+        self.SetRegionName("Nand")
 
 class NandGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.NAND function for drawing """

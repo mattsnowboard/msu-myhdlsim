@@ -128,21 +128,22 @@ class SignalWrapper:
         Caller must know when Signal has changed
         """
         self._shape.ClearText()
-        # For now we are printing TEXT "True", "False", or "None"
-        # Change me if you want something else
-        if (self._signal.val == None):
-            self._shape.AddText(str(self._signal.val))
-            self._shape.SetBrush(wx.Brush("GREY", wx.SOLID))
-            self._shape.SetTextColour("BLACK")
-        elif (bool(self._signal.val) == False):
-            self._shape.AddText(str(bool(self._signal.val)))
-            self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
-            self._shape.SetTextColour("BLACK")
-        else:
-            self._shape.AddText(str(bool(self._signal.val)))
-            self._shape.SetBrush(wx.Brush("BLACK", wx.SOLID))
-            self._shape.SetTextColour("WHITE")
-        #evt = SignalChangeEvent(val = self._signal.val)
+        if self._shape.GetBrush() != wx.TRANSPARENT_BRUSH:
+            # For now we are printing TEXT "True", "False", or "None"
+            # Change me if you want something else
+            if (self._signal.val == None):
+                self._shape.AddText(str(self._signal.val))
+                self._shape.SetBrush(wx.Brush("GREY", wx.SOLID))
+                self._shape.SetTextColour("BLACK")
+            elif (bool(self._signal.val) == False):
+                self._shape.AddText(str(bool(self._signal.val)))
+                self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
+                self._shape.SetTextColour("BLACK")
+            else:
+                self._shape.AddText(str(bool(self._signal.val)))
+                self._shape.SetBrush(wx.Brush("BLACK", wx.SOLID))
+                self._shape.SetTextColour("WHITE")
+            #evt = SignalChangeEvent(val = self._signal.val)
     
     def SetX(self, x):
         self._x = x

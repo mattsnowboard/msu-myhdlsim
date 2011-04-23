@@ -23,6 +23,7 @@ class NorGateShape(ogl.PolygonShape):
         self.Create(points)
         self.CalculatePolygonCentre
         self.AddText("Nor")
+        self.SetRegionName("Nor")
 
 class NorGateWrapper(GenericGateWrapper):
     """ This class wraps a MyHDLSim.combinational.NOR function for drawing """

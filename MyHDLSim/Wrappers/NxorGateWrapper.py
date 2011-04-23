@@ -34,6 +34,7 @@ class NxorGateShape(ogl.CompositeShape):
         shape2.Create(points2)
 
         self.AddText("Nxor")
+        self.SetRegionName("Nxor")
 
         self.AddChild(shape1)
         self.AddChild(shape2)
