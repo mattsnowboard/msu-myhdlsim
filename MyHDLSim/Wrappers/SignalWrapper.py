@@ -1,6 +1,7 @@
 import wx, wx.lib.newevent
 import wx.lib.ogl as ogl
 from myhdl import Signal, always
+from MyHDLSim.sequential import ClkDriver
 
 # The events that wx side will listen for (must register self for this)
 SignalChangeEvent, EVT_SIGNAL_CHANGE = wx.lib.newevent.NewEvent() 
@@ -105,6 +106,15 @@ class SignalWrapper:
         self._label = label
         self._signal = a._signal
         canvas.ConnectWires(self._shape, a.GetShape())
+
+    def SetClockDriver(self, canvas, label):
+        """ Setting as a clock, need to recreate shape
+
+        """
+        self._label = label
+        self._shape = SignalOGLShape(canvas, label)
+        self._shape.AddText("Clock")
+        self._inst = ClkDriver(self._signal)
     
     def GetSignal(self):
         """ Get the underlying object
@@ -153,4 +163,8 @@ class SignalWrapper:
     
     def GetShape(self):
         return self._shape
+
+    def GetInstance(self):
+        """ Get instance for simulator """
+        return self._inst
     

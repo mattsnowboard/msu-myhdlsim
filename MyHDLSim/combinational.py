@@ -1,4 +1,4 @@
-from myhdl import Signal, always_comb, instances
+from myhdl import Signal, always_comb, instances, now
 
 def And(f, a, b, c = Signal(1), d = Signal(1)):
 
@@ -11,6 +11,7 @@ def And(f, a, b, c = Signal(1), d = Signal(1)):
 
     @always_comb
     def logic():
+        print now()
         if (a == None or b == None or c == None or d == None):
             f.next = None
         else:

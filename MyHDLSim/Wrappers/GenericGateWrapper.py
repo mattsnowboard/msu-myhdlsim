@@ -2,7 +2,7 @@ import wx
 import wx.lib.ogl as ogl
 
 class GenericGateShape(ogl.CompositeShape):
-    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True):
+    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True , topShapes = [], bottomShapes = []):
         ogl.CompositeShape.__init__(self)
         self.SetCanvas(canvas)
         
@@ -13,19 +13,37 @@ class GenericGateShape(ogl.CompositeShape):
         # Determine spacing
         numLeftIn = len(inLeftShapes)
         numOut = len(outShapes)
+        numTop = len(topShapes)
+        numBottom = len(bottomShapes)
         shapeHeight = self._main.GetBoundingBoxMin()[1]
         if isinstance(self._main, ogl.CompositeShape):
             shapeHeight = self._main.GetHeight()
+            shapeWidth = self._main.GetWidth()
+        # Left spacing
         leftInHeight = 0
         if (numLeftIn > 0):
             leftInHeight = inLeftShapes[0].GetHeight()
         if (numLeftIn > 1):
             YspaceLeftIns = (shapeHeight - leftInHeight * numLeftIn) / (numLeftIn)
+        # Right spacing
         outHeight = 0
         if (numOut > 0):
             outHeight = outShapes[0].GetHeight()
         if (numOut > 1):
             YspaceOuts = (shapeHeight - outHeight * numOut) / (numOut)
+
+        # Top spacing
+        topWidth = 0
+        if (numTop > 0):
+            topWidth = topShapes[0].GetWidth()
+        if (numTop > 1):
+            XspaceTops = (shapeWidth - topWidth * numTop) / (numTop)
+        # Bottom spacing
+        bottomWidth = 0
+        if (numBottom > 0):
+            bottomWidth = bottomShapes[0].GetWidth()
+        if (numBottom > 1):
+            XspaceBottoms = (shapeWidth - bottomWidth * numBottom) / (numBottom)
 
         # Initalize & set up 'In' objects
         self._leftInShapes = inLeftShapes
@@ -42,7 +60,7 @@ class GenericGateShape(ogl.CompositeShape):
             for q in range(numLeftIn):
                 self._leftInShapes[q].SetY(YspaceLeftIns / 2 + (YspaceLeftIns + leftInHeight) * q - (shapeHeight / 2 - leftInHeight / 2))
 
-        # Connect and setup 'Out' object
+        # Connect and setup 'Out' objects
         self._outShapes = outShapes
         for ob in self._outShapes:
             self.AddChild(ob)
@@ -56,6 +74,37 @@ class GenericGateShape(ogl.CompositeShape):
         if (numOut > 1):
             for q in range(numOut):
                 self._outShapes[q].SetY(YspaceOuts / 2 + (YspaceOuts + outHeight) * q - (shapeHeight / 2 - outHeight / 2))
+
+        # Connect and setup 'Top' objects
+        self._topShapes = topShapes
+        for ob in self._topShapes:
+            self.AddChild(ob)
+            if doConnect:
+                canvas.ConnectWires(self._main, ob)
+            ob.SetDraggable(False)
+
+        constraintOuts = ogl.Constraint(ogl.CONSTRAINT_ABOVE, self._main, self._topShapes)
+        constraintOuts.SetSpacing(0, 10)
+        self.AddConstraint(constraintOuts)
+        if (numOut > 1):
+            for q in range(numOut):
+                self._topShapes[q].SetX(XspaceTops / 2 + (XspaceTops + topWidth) * q - (shapeWidth / 2 - topWidth / 2))
+
+        # Connect and setup 'Bottom' objects
+        self._bottomShapes = bottomShapes
+        for ob in self._bottomShapes:
+            self.AddChild(ob)
+            if doConnect:
+                canvas.ConnectWires(self._main, ob)
+            ob.SetDraggable(False)
+
+        constraintOuts = ogl.Constraint(ogl.CONSTRAINT_BELOW, self._main, self._bottomShapes)
+        constraintOuts.SetSpacing(0, 10)
+        self.AddConstraint(constraintOuts)
+        if (numOut > 1):
+            for q in range(numOut):
+                self._bottomShapes[q].SetX(XspaceBottoms / 2 + (XspaceBottoms + bottomWidth) * q - (shapeWidth / 2 - bottomWidth / 2))
+
 
         self.Recompute()
         
@@ -93,18 +142,24 @@ class GenericGateWrapper:
     It can be any type of gate and this handles common code like connecting wires
     """
     
-    def __init__(self, drawManager, x, y, leftIns, gateshape, out):
+    def __init__(self, drawManager, x, y, leftIns, gateshape, out, tops = [], bottoms = []):
         """
         x, y : position of the gate
         """
         PurgeList(leftIns)
+        PurgeList(tops)
+        PurgeList(bottoms)
         self._leftInSignals = leftIns
+        self._tops = tops
+        self._bottoms = bottoms
 
         leftInShapes = [ogl.RectangleShape(10, 10) for i in leftIns]
+        topShapes = [ogl.RectangleShape(10, 10) for i in tops]
+        bottomShapes = [ogl.RectangleShape(10, 10) for i in bottoms]
         outShapes = [out.GetShape()]
 	
         # default shape that other classes SHOULD override
-        self._shape = GenericGateShape(drawManager, leftInShapes, outShapes, gateshape)
+        self._shape = GenericGateShape(drawManager, leftInShapes, outShapes, gateshape, topShapes, bottomShapes)
         dc = wx.ClientDC(drawManager)
         drawManager.PrepareDC(dc)
 
@@ -129,6 +184,10 @@ class GenericGateWrapper:
         """
         for i in range(len(self._leftInSignals)):
             drawManager.ConnectWires(self._shape._leftInShapes[i], self._leftInSignals[i].GetShape())
+        for i in range(len(self._tops)):
+            drawManager.ConnectWires(self._shape._topShapes[i], self._tops[i].GetShape())
+        for i in range(len(self._bottoms)):
+            drawManager.ConnectWires(self._shape._bottomShapes[i], self._bottoms[i].GetShape())
         """for s in self._signals:
             if (s != None):
                 drawManager.ConnectWires(self._shape._main, s.GetShape())"""

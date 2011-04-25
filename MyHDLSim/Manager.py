@@ -1,6 +1,6 @@
 import wx
 import wx.lib.ogl as ogl
-from myhdl import Signal, Simulation, delay, instance
+from myhdl import Signal, Simulation, delay, instance, StopSimulation
 from MyHDLSim.Wrappers.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
 from MyHDLSim.Module import Module, EVT_MODULE_MOVE
 from MyHDLSim.wxApplication import MainWindow
@@ -78,7 +78,18 @@ class Manager:
         signal.SetX(pos[0])
         signal.SetY(pos[1])
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
+ 
+    def AddClock(self, pos, signal, label):
+        """ Add a switch to an existing signal
         
+        """
+        # @todo verify we have created the signal, else it won't update
+        signal.SetClockDriver(self._canvas, label)
+        signal.SetX(pos[0])
+        signal.SetY(pos[1])
+        self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1], False)
+        self._top._addInstance(signal)
+       
     def AddAndGate(self, pos, out, a, b, c = None, d = None):
         """ Create an AND gate
         
@@ -127,6 +138,34 @@ class Manager:
         This is a way to allow users to ignore the underlying module
         """
         self._top.AddNxorGate(pos, out, a, b, c, d)
+
+    def AddMux21(self, pos, out, select, a, b):
+        """ Create a 2-1 MUX
+
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddMux21(pos, out, select, a, b)
+
+    def AddMux41(self, pos, out, c0, c1, d0, d1, d2, d3):
+        """ Create a 4-1 MUX
+
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddMux41(pos, out, c0, c1, d0, d1, d2, d3)
+
+    def AddTff(self, pos, q, t, clk, rst = None, s = None):
+        """ Create a T Flip-Flop
+
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddTff(pos, q, t, clk, rst = None, s = None)
+
+    def AddDff(self, pos, q, d, clk, rst = None, s = None):
+        """ Create a D Flip-Flop
+
+        This is a way to allow users to ignore the underlying module
+        """
+        self._top.AddDff(pos, q, d, clk, rst = None, s = None)
     
     def AddModule(self, module, pos, name):
         """ Add a module
@@ -163,6 +202,7 @@ class Manager:
         event_loop_runner = EventLoop()
         
         # grab top module
+
         self._instances.append(self._top.GetInstances())
         
         self._instances.append(event_loop_runner)
@@ -229,6 +269,7 @@ class Manager:
             s.Update()
         self._top.Update()
         self._canvas.Refresh(False)
+
        
        
 def Init():

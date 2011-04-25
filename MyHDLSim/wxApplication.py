@@ -127,7 +127,7 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         self._modules.append(shape)
         return shape
         
-    def AddMyHDLSignal(self, shape, x, y):
+    def AddMyHDLSignal(self, shape, x, y, reg = True):
         """ Add a signal to the diagram and register its events
 
         Moves it to a location x,y
@@ -141,7 +141,8 @@ class MyHDLCanvas(ogl.ShapeCanvas):
         shape.SetY(y)
         self._diagram.AddShape(shape)
         shape.Show(True)
-        self._RegisterEvents(shape)
+        if reg:
+            self._RegisterEvents(shape)
         
         self._signals.append(shape)
     

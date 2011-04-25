@@ -1,7 +1,7 @@
-from myhdl import Signal, always, always_comb, instances, instance, delay
+from myhdl import Signal, always, always_comb, instances, instance, delay, now
 from MyHDLSim.combinational import Not, Mux21
 
-def ClkDriver(clk, period=20):
+def ClkDriver(clk, period=4):
 
     """ Clock Driver helper
     
@@ -18,15 +18,17 @@ def ClkDriver(clk, period=20):
     @instance
     def driveClk():
         while True:
+            print "clock 1 %s" %now()
             yield delay(lowTime)
-            clk.next = 1
+            clk.next = True
+            print "clock 2 %s" %now()
             yield delay(highTime)
-            clk.next = 0
+            clk.next = False
 
     return driveClk
 
 
-def tff(q, t, clk, rst = Signal(1), set = Signal(1)):
+def tff(q, t, clk, rst = Signal(1), s = Signal(1)):
     
     """ T Flip Flop with asyncronous set/reset
     
@@ -37,11 +39,11 @@ def tff(q, t, clk, rst = Signal(1), set = Signal(1)):
     
     """
  
-    @always(clk.posedge, rst.negedge, set.negedge)
+    @always(clk.posedge, rst.negedge, s.negedge)
     def logic():
         if rst == 0:
             q.next = 0
-        elif set == 0:
+        elif s == 0:
             q.next = 1
         else:
             if t == 1:
@@ -51,7 +53,7 @@ def tff(q, t, clk, rst = Signal(1), set = Signal(1)):
  
     return instances()
 
-def dff(q, d, clk, rst = Signal(1), set = Signal(1)):
+def dff(q, d, clk, rst = Signal(1), s = Signal(1)):
     
     """ D Flip Flop with asyncronous set/reset
     
@@ -63,11 +65,11 @@ def dff(q, d, clk, rst = Signal(1), set = Signal(1)):
     
     """
  
-    @always(clk.posedge, rst.negedge, set.negedge)
+    @always(clk.posedge, rst.negedge, s.negedge)
     def logic():
         if rst == 0:
             q.next = 0
-        elif set == 0:
+        elif s == 0:
             q.next = 1
         else:
             q.next = d

@@ -8,6 +8,10 @@ from MyHDLSim.Wrappers.OrGateWrapper import OrGateWrapper
 from MyHDLSim.Wrappers.NorGateWrapper import NorGateWrapper
 from MyHDLSim.Wrappers.XorGateWrapper import XorGateWrapper
 from MyHDLSim.Wrappers.NxorGateWrapper import NxorGateWrapper
+from MyHDLSim.Wrappers.Mux21Wrapper import Mux21Wrapper
+from MyHDLSim.Wrappers.Mux41Wrapper import Mux41Wrapper
+from MyHDLSim.Wrappers.tffWrapper import TffWrapper
+from MyHDLSim.Wrappers.dffWrapper import DffWrapper
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateShape
 from myhdl import always_comb
 
@@ -212,6 +216,9 @@ class Module:
     def AddNorGate(self, pos, out, a, b, c = None, d = None):
         """ Create an NOR gate
         
+        pos: position to place gate at relative to containing module
+        out: output
+        a,b,c,d: inputs
         """
         gate = NorGateWrapper(self._canvas,
                              pos[0], pos[1],
@@ -251,6 +258,9 @@ class Module:
     def AddNxorGate(self, pos, out, a, b, c = None, d = None):
         """ Create an NXOR gate
         
+        pos: position to place gate at relative to containing module
+        out: output
+        a,b,c,d: inputs
         """
         gate = NxorGateWrapper(self._canvas,
                              pos[0], pos[1],
@@ -259,6 +269,75 @@ class Module:
                              self.SignalToPort(b),
                              self.SignalToPort(c),
                              self.SignalToPort(d))
+        self._addInstance(gate)
+
+    def AddMux21(self, pos, out, select, a, b):
+        """ Create a 2-1 Mux
+
+        pos: position to palce gate at relative to containing module
+        out: output
+        select: selection
+        a,b: inputs
+        """
+        gate = Mux21Wrapper(self._canvas,
+                            pos[0], pos[1],
+                            self.SignalToPort(out),
+                            self.SignalToPort(select),
+                            self.SignalToPort(a),
+                            self.SignalToPort(b))
+        self._addInstance(gate)
+
+    def AddMux41(self, pos, out, c0, c1, d0, d1, d2, d3):
+        """ Create a 4-1 Mux
+
+        pos: position to palce gate at relative to containing module
+        out: output
+        c0,c1: selection
+        d0,d1,d2,d3: inputs
+        """
+        gate = Mux41Wrapper(self._canvas,
+                            pos[0], pos[1],
+                            self.SignalToPort(out),
+                            self.SignalToPort(c0),
+                            self.SignalToPort(c1),
+                            self.SignalToPort(d0),
+                            self.SignalToPort(d1),
+                            self.SignalToPort(d2),
+                            self.SignalToPort(d3))
+        self._addInstance(gate)
+
+    def AddTff(self, pos, q, t, clk, rst = None, s = None):
+        """ Create a T Flip-Flop
+
+        pos: position to place gate at relative to containing module
+        q: output
+        t, clk: inputs
+        rst,s: Reset/Set
+        """
+        gate = TffWrapper(self._canvas,
+                          pos[0], pos[1],
+                          self.SignalToPort(q),
+                          self.SignalToPort(t),
+                          self.SignalToPort(clk),
+                          self.SignalToPort(rst),
+                          self.SignalToPort(s))
+        self._addInstance(gate)
+
+    def AddDff(self, pos, q, d, clk, rst = None, s = None):
+        """ Create a D Flip-Flop
+
+        pos: position to place gate at relative to containing module
+        q: output
+        d, clk: inputs
+        rst,s: Reset/Set
+        """
+        gate = DffWrapper(self._canvas,
+                          pos[0], pos[1],
+                          self.SignalToPort(q),
+                          self.SignalToPort(d),
+                          self.SignalToPort(clk),
+                          self.SignalToPort(rst),
+                          self.SignalToPort(s))
         self._addInstance(gate)
     
     def AddModule(self, module, pos, name):
