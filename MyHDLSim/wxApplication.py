@@ -215,8 +215,8 @@ class MainWindow(wx.Frame):
         self._buttons.append(wx.Button(self, -1, "Play Simulation"))
         self._buttonToolbar.Add(self._buttons[1], 1, wx.EXPAND)
         self._buttons[1].Disable()
-        self._buttons[0].Bind(wx.EVT_BUTTON, self._OnPlayClick)
-        self._buttons[0].SetToolTip(wx.ToolTip("Click to Play"))
+        self._buttons[1].Bind(wx.EVT_BUTTON, self._OnPlayClick)
+        self._buttons[1].SetToolTip(wx.ToolTip("Click to Play"))
 
         for i in range(2, 6):
             self._buttons.append(wx.Button(self, -1, "Button &"+str(i)))
@@ -254,10 +254,9 @@ class MainWindow(wx.Frame):
         return self._exit
 
     def _OnPauseClick(self, e):
-        print "clicked!"
-        self._buttons[0].Disable()
         self._buttons[1].Enable()
         self._canvas._manager._pause = True
+        self._buttons[0].Disable()
 
     def _OnPlayClick(self, e):
         self._buttons[1].Disable()
