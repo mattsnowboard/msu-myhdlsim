@@ -1,6 +1,6 @@
 import wx
 import wx.lib.ogl as ogl
-from myhdl import Signal, Simulation, delay, instance, StopSimulation
+from myhdl import Signal, Simulation, delay, instance, StopSimulation, now
 from MyHDLSim.Wrappers.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
 from MyHDLSim.Module import Module, EVT_MODULE_MOVE
 from MyHDLSim.wxApplication import MainWindow, ThreadTimer, EVT_THREAD_TIMER
@@ -203,6 +203,7 @@ class Manager:
             def inst():
                 while(self._frame and not self._frame.IsExit()):
                     yield delay(1)
+                    self._frame.GetStatusBar().SetFields(["Simulation step: " + str(now())])
                     self._refresh()
                     self._app.MainLoop()
                 else:

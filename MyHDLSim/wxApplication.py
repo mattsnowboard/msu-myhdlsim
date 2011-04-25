@@ -257,11 +257,13 @@ class MainWindow(wx.Frame):
         self._buttons[1].Enable()
         self._canvas._manager._pause = True
         self._buttons[0].Disable()
+        self._canvas.SetFocus()
 
     def _OnPlayClick(self, e):
         self._buttons[1].Disable()
         self._buttons[0].Enable()
         self._canvas._manager._pause = False
+        self._canvas.SetFocus()
 
 """
 Credit to below two classes goes to http://stackoverflow.com/questions/1277968/wxpython-wx-calllater-being-very-late
