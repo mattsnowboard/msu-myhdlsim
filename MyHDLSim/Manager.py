@@ -86,12 +86,12 @@ class Manager:
         signal.SetY(pos[1])
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1])
  
-    def AddClock(self, pos, signal, label):
+    def AddClock(self, pos, signal, label, period = 20):
         """ Add a switch to an existing signal
         
         """
         # @todo verify we have created the signal, else it won't update
-        signal.SetClockDriver(self._canvas, label)
+        signal.SetClockDriver(self._canvas, label, period)
         signal.SetX(pos[0])
         signal.SetY(pos[1])
         self._canvas.AddMyHDLSignal(signal.GetShape(), pos[0], pos[1], False)

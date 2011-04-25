@@ -107,14 +107,14 @@ class SignalWrapper:
         self._signal = a._signal
         canvas.ConnectWires(self._shape, a.GetShape())
 
-    def SetClockDriver(self, canvas, label):
+    def SetClockDriver(self, canvas, label, period = 20):
         """ Setting as a clock, need to recreate shape
 
         """
         self._label = label
         self._shape = SignalOGLShape(canvas, label)
         self._shape.AddText("Clock")
-        self._inst = ClkDriver(self._signal)
+        self._inst = ClkDriver(self._signal, period)
     
     def GetSignal(self):
         """ Get the underlying object
