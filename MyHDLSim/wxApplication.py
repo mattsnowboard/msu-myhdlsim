@@ -1,7 +1,12 @@
 import os
 import wx
 import wx.lib.ogl as ogl
+import time
+import threading
 from MyHDLSim.Module import EVT_MODULE_MOVE, ModuleMoveEvent
+
+wxEVT_THREAD_TIMER = wx.NewEventType()
+EVT_THREAD_TIMER = wx.PyEventBinder(wxEVT_THREAD_TIMER, 1)
 
 class MyEvtHandler(ogl.ShapeEvtHandler):
     """
@@ -201,7 +206,19 @@ class MainWindow(wx.Frame):
         #sizers
         self._buttonToolbar = wx.BoxSizer(wx.HORIZONTAL)
         self._buttons = []
-        for i in range(0, 6):
+        # Pause Button
+        self._buttons.append(wx.Button(self, -1, "Pause Simulation"))
+        self._buttonToolbar.Add(self._buttons[0], 1, wx.EXPAND)
+        self._buttons[0].Bind(wx.EVT_BUTTON, self._OnPauseClick)
+        self._buttons[0].SetToolTip(wx.ToolTip("Click to Pause"))
+        # Play button
+        self._buttons.append(wx.Button(self, -1, "Play Simulation"))
+        self._buttonToolbar.Add(self._buttons[1], 1, wx.EXPAND)
+        self._buttons[1].Disable()
+        self._buttons[0].Bind(wx.EVT_BUTTON, self._OnPlayClick)
+        self._buttons[0].SetToolTip(wx.ToolTip("Click to Play"))
+
+        for i in range(2, 6):
             self._buttons.append(wx.Button(self, -1, "Button &"+str(i)))
             self._buttonToolbar.Add(self._buttons[i], 1, wx.EXPAND)
         
@@ -235,3 +252,42 @@ class MainWindow(wx.Frame):
 
     def IsExit(self):
         return self._exit
+
+    def _OnPauseClick(self, e):
+        print "clicked!"
+        self._buttons[0].Disable()
+        self._buttons[1].Enable()
+        self._canvas._manager._pause = True
+
+    def _OnPlayClick(self, e):
+        self._buttons[1].Disable()
+        self._buttons[0].Enable()
+        self._canvas._manager._pause = False
+
+"""
+Credit to below two classes goes to http://stackoverflow.com/questions/1277968/wxpython-wx-calllater-being-very-late
+Classes have been altered to fit programs naming scheme
+"""
+class ThreadTimer(object):
+   def __init__(self, parent):
+        self._parent = parent
+        self._thread = Thread()
+        self._thread._parent = self
+        self._alive = False
+
+   def start(self, interval):
+       self._interval = interval
+       self._alive = True
+       self._thread.start()
+
+   def stop(self):
+       self._alive = False
+
+class Thread(threading.Thread):
+    def run(self):
+       while self._parent._alive:
+           time.sleep(self._parent._interval / 1000.0)
+           if self._parent._alive:
+               event = wx.PyEvent()
+               event.SetEventType(wxEVT_THREAD_TIMER)
+               wx.PostEvent(self._parent._parent, event)

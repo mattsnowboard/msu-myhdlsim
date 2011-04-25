@@ -1,7 +1,7 @@
 from myhdl import Signal, always, always_comb, instances, instance, delay, now
 from MyHDLSim.combinational import Not, Mux21
 
-def ClkDriver(clk, period=4):
+def ClkDriver(clk, period=20):
 
     """ Clock Driver helper
     
@@ -18,10 +18,8 @@ def ClkDriver(clk, period=4):
     @instance
     def driveClk():
         while True:
-            print "clock 1 %s" %now()
             yield delay(lowTime)
             clk.next = True
-            print "clock 2 %s" %now()
             yield delay(highTime)
             clk.next = False
 

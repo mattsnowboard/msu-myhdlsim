@@ -3,7 +3,7 @@ import wx.lib.ogl as ogl
 from myhdl import Signal, Simulation, delay, instance, StopSimulation
 from MyHDLSim.Wrappers.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
 from MyHDLSim.Module import Module, EVT_MODULE_MOVE
-from MyHDLSim.wxApplication import MainWindow
+from MyHDLSim.wxApplication import MainWindow, ThreadTimer, EVT_THREAD_TIMER
 
 class Manager:
     """ This class will manage the Signals and Gates and Simulator """
@@ -36,6 +36,13 @@ class Manager:
         
         self._frame.Bind(EVT_MODULE_MOVE, self.OnModuleMove)
         self._canvas.Bind(wx.EVT_CHAR, self.OnKey)
+
+        # Set timing events
+        self._pause = False
+        self._timer = ThreadTimer(self._frame)
+        self._timer.start(150)
+        self._frame.Bind(EVT_THREAD_TIMER, self.OnTimer)
+
         self._canvas.SetFocus()
         
     def CreateSignal(self, initial = None):
@@ -198,6 +205,9 @@ class Manager:
                     yield delay(1)
                     self._refresh()
                     self._app.MainLoop()
+                else:
+                    self._timer.stop()
+                    raise StopSimulation
             return inst
         event_loop_runner = EventLoop()
         
@@ -211,6 +221,7 @@ class Manager:
 
         self._simulator.run()
 
+
     def _buildHierarchy(self, module, level):
         """ Recursive calls to build the module hierarchy list
         """
@@ -219,6 +230,12 @@ class Manager:
                 self._moduleHierarchy.append([])
             self._moduleHierarchy[level].append(m)
             self._buildHierarchy(m, level + 1)
+
+    def OnTimer(self, e):
+        """ Handle timing simulation
+        """
+        if not self._pause:
+            self._app.ExitMainLoop()
 
     def OnKey(self, e):
         """ Switch toggling by keypress
