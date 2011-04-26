@@ -5,9 +5,9 @@ import MyHDLSim.Manager
 def SubModule(manager, X, Y, Out):
     module = manager.CreateModule()
 
-    portX = module.AddPort((0,0), X, True, "X")
-    portY = module.AddPort((0,50), Y, True, "Y")
-    portO = module.AddPort((100,0), Out, False, "Out")
+    portX = module.AddPort(X, True, "X")
+    portY = module.AddPort(Y, True, "Y")
+    portO = module.AddPort(Out, False, "Out")
 
     module.AddOrGate((0,0), portO, portX, portY)
 
@@ -20,10 +20,9 @@ def MyModule(manager, signalA, signalB, signalOut):
     orWire = manager.CreateSignal()
     
     # lets give input/output ports some names for rendering
-    # give locations relative to the module box
-    portA = module.AddPort((0,0), signalA, True, "A input")
-    portB = module.AddPort((0,50), signalB, True, "B input")
-    portO = module.AddPort((400,50), signalOut, False, "OUTPUT")
+    portA = module.AddPort(signalA, True, "A input")
+    portB = module.AddPort(signalB, True, "B input")
+    portO = module.AddPort(signalOut, False, "OUTPUT")
 
     module.AddNotGate((0,0), notA, signalA)
 

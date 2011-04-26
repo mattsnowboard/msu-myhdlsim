@@ -3,7 +3,6 @@ import wx
 import wx.lib.ogl as ogl
 import time
 import threading
-from MyHDLSim.Module import EVT_MODULE_MOVE, ModuleMoveEvent
 
 wxEVT_THREAD_TIMER = wx.NewEventType()
 EVT_THREAD_TIMER = wx.PyEventBinder(wxEVT_THREAD_TIMER, 1)
@@ -68,13 +67,6 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
         """
         shape = self.GetShape()
         ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
-        # module background moves all contents
-        modules = self._canvas.GetModules()
-        if shape in modules:
-            evt = ModuleMoveEvent(Shape = shape)
-            wx.PostEvent(self._manager.GetFrame(), evt)
-            # refresh to clear artifacts when moving a module
-            self.GetShape().GetCanvas().Refresh(False)
         # drag should also select
         if not shape.Selected():
             self.OnLeftClick(x, y, keys, attachment)

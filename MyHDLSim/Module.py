@@ -15,26 +15,17 @@ from MyHDLSim.Wrappers.dffWrapper import DffWrapper
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateShape
 from myhdl import always_comb
 
-# The events that wx side will listen for, used to move contents of a Module
-ModuleMoveEvent, EVT_MODULE_MOVE = wx.lib.newevent.NewEvent() 
-
 class ModuleShape(GenericGateShape):
-    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True):
+    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, topShapes = [], bottomShapes = [], doConnect = True):
         """ Creates a ModuleShape which is a rectangle within the GenericGate
 
         canvas: where to draw shapes
         width, height: main shape rectangle size
         """
-        GenericGateShape.__init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect)
+        GenericGateShape.__init__(self, canvas, inLeftShapes, outShapes, mainShape, topShapes, bottomShapes, doConnect)
 
         self._hidden = []
 
-##    def AddChild(self, child, addAfter=None):
-##        """ Overload so we keep a list of children
-##        """
-##        GenericGateShape.AddChild(self, child, addAfter)
-##        self._children.append(child)
-##        
     def HideModule(self):
         """ Need to remove children from canvas
         """
@@ -106,7 +97,7 @@ class Module:
         # keeps the inner signals which are used by modules
         self._outPortsInner = []
     
-    def AddPort(self, pos, signal, is_input, label):
+    def AddPort(self, signal, is_input, label):
         """ Add a port to interface with the module
         
         pos: (x, y) tuple to place the port within the module
@@ -117,8 +108,7 @@ class Module:
         return: The signal so we can connect to it!
         """
         if (is_input):
-            port = SignalWrapper(self._canvas, signal.GetSignal().val, pos[0], pos[1])
-            port.AddListener(self._manager._frame)
+            port = SignalWrapper(self._canvas, signal.GetSignal().val)
             self._inPorts.append(port)
             #lets map the signal to the port
             self._portmap[signal] = port
@@ -135,8 +125,7 @@ class Module:
             #returned so we can use the underlying signal
             return port
         else: #output
-            port = SignalWrapper(self._canvas, signal.GetSignal().val, pos[0], pos[1])
-            port.AddListener(self._manager._frame)
+            port = SignalWrapper(self._canvas, signal.GetSignal().val)
             self._outPorts.append(signal)
             self._outPortsInner.append(port)
             self._portmap[signal] = port
@@ -346,21 +335,15 @@ class Module:
         module: already defined
         pos: where to position the module within containing module
         name: this can be displayed
-
-        @todo: Use the name!
         """
         # move the module and find its bounds
         module.Move(pos[0], pos[1], True)
         module._setBounds()
-        # create bounding box
-        #module._completeShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
-        # module._completeShape = ModuleShape(self._canvas, module.GetWidth(), module.GetHeight())
-        #module._hiddenShape = ModuleShape(self._canvas, module.GetWidth(), module.GetHeight())
         inPorts = [p.GetShape() for p in module._inPorts]
         outPorts = [p.GetShape() for p in module._outPorts]
-        #module._shape = ModuleShape(self._canvas, inPorts, outPorts, module.GetWidth(), module.GetHeight(), False)
+        # create bounding box
         boxShape = ogl.RectangleShape(module.GetWidth(), module.GetHeight())
-        module._shape = ModuleShape(self._canvas, inPorts, outPorts, boxShape, False)
+        module._shape = ModuleShape(self._canvas, inPorts, outPorts, boxShape, [], [], False)
         # connect outer wires
         for port in module._shape._leftInShapes:
             signal = module._portShapeMap[port]
@@ -375,11 +358,6 @@ class Module:
                            module.GetX() + module.GetWidth() / 2,
                            module.GetY() + module.GetHeight() / 2,
                            False)
-##        module._hiddenShape.Move(dc,
-##                                 module.GetX() + module.GetWidth() / 2,
-##                                 module.GetY() + module.GetHeight() / 2,
-##                                 False)
-        #self._canvas.AddMyHDLModule(module._shape)
         module._shape._main.SetRegionName(name)
         self._modules.append(module)
     
@@ -511,13 +489,9 @@ class Module:
             if self._showInternal:
                 self._shape.ShowModule()
                 self._shape._main.ClearText()
-                #self._shape.ChangeMain(self._completeShape)
-                #self._completeShape.ShowModule()
             else:
                 self._shape.HideModule()
                 self._shape._main.AddText(self._shape._main.GetRegionName())
-                #self._shape.ChangeMain(self._hiddenShape)
-                #self._completeShape.HideModule()
         
     def GetWidth(self):
         """ Get width for drawing bounding box

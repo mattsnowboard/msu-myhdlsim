@@ -1,12 +1,10 @@
 import MyHDLSim.Manager
 
-""" This tests adding modules which contain other modules """
-
 def Simple(manager, signalA, signalOut):
     module = manager.CreateModule()
     
-    portA = module.AddPort((0,0), signalA, True, "A input")
-    portO = module.AddPort((400,50), signalOut, False, "OUTPUT")
+    portA = module.AddPort(signalA, True, "A input")
+    portO = module.AddPort(signalOut, False, "OUTPUT")
 
     module.AddNotGate((0,0), portO, portA)
     

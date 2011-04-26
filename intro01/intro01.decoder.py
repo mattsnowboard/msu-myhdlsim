@@ -1,33 +1,29 @@
-from myhdl import Signal, Simulation, delay, always_comb, always, instances, traceSignals, intbv, concat
-from random import randrange
-from MyHDLSim.sequential import Counter
-from MyHDLSim.combinational import Decoder
+import MyHDLSim.Manager
 
-def test():
+manager = MyHDLSim.Manager.Init()
 
-    clk = Signal(0)
-    enable = Signal(1)
-    rst = Signal(1)
-    count = Signal(intbv(0)[3:])
-    decode = Signal(intbv(0)[8:])
+## Circuit from intro01.circuit.c
 
-    counter = Counter(count, clk, rst)
-    decoder = Decoder(decode, count, enable)
+a, b, c, d, F = [manager.CreateSignal() for i in range(5)]
 
-    @always(delay(10))
-    def clkgen():
-        clk.next = not clk
-        
-    @always(clk.posedge)
-    def printVal():
-        print "Counter: %s Enable: %s Decoder: %s" % (count, enable, decode)
-    
-    return counter, decoder, clkgen, printVal
+# intermediate signals
+notb, notc, notd = [manager.CreateSignal() for i in range(3)]
+and1, and2 = [manager.CreateSignal() for i in range(2)]
 
-        
-def simulate(timesteps):
-    tb = traceSignals(test)
-    sim = Simulation(tb)
-    sim.run(timesteps)
- 
-simulate(200)
+manager.AddSwitch((50, 50), a, 'a')
+manager.AddSwitch((50, 200), b, 'b')
+manager.AddSwitch((50, 300), c, 'c')
+manager.AddSwitch((50, 400), d, 'd')
+
+manager.AddNotGate((200, 200), notb, b)
+manager.AddNotGate((200, 320), notc, c)
+manager.AddNotGate((200, 440), notd, d)
+
+manager.AddAndGate((420, 200), and1, a, notb)
+manager.AddAndGate((420, 400), and2, b, notc, notd)
+
+manager.AddOrGate((640, 300), F, and1, and2)
+
+manager.AddProbe((750, 300), F, 'f')
+
+manager.Start()

@@ -3,9 +3,6 @@ import wx.lib.ogl as ogl
 from myhdl import Signal, always
 from MyHDLSim.sequential import ClkDriver
 
-# The events that wx side will listen for (must register self for this)
-SignalChangeEvent, EVT_SIGNAL_CHANGE = wx.lib.newevent.NewEvent() 
-
 # OGL object to draw a signal
 class SignalOGLShape(ogl.CompositeShape):
     def __init__(self, canvas, label):
@@ -54,33 +51,12 @@ class SignalWrapper:
     Handles wx event listening, toggling, and getting an object to draw
     """
     
-    def __init__(self, canvas, signal = None, x = 0, y = 0, label = '', listener = None):
+    def __init__(self, canvas, signal = None, width = 1, label = ''):
         self._label = label
         self._signal = Signal(signal)
-        self._listeners = list()
-        if listener != None:
-            self.AddListener(listener)
         self._shape = ogl.RectangleShape(10,10)
         self._shape.AddText(str(self._signal.val))
-        #self._shape.SetX(x)
-        #self._shape.SetY(y)
-    
-    def AddListener(self, listener):
-        """ Add Listener to Signal
         
-        Must be done BEFORE getting instance and creating Simulator
-        """
-        
-        self._listeners.append(listener)
-    
-    def RemoveListener(self, listener):
-        """ Remove Listener from Signal
-        
-        Must be done BEFORE getting instance and creating Simulator
-        """
-        
-        self._listeners.remove(listener)
-    
     def SetSwitch(self, canvas, label):
         """ Setting a label, need to recreate shape
         
@@ -153,7 +129,6 @@ class SignalWrapper:
                 self._shape.AddText(str(bool(self._signal.val)))
                 self._shape.SetBrush(wx.Brush("BLACK", wx.SOLID))
                 self._shape.SetTextColour("WHITE")
-            #evt = SignalChangeEvent(val = self._signal.val)
     
     def SetX(self, x):
         self._x = x

@@ -1,8 +1,8 @@
 import wx
 import wx.lib.ogl as ogl
 from myhdl import Signal, Simulation, delay, instance, StopSimulation, now
-from MyHDLSim.Wrappers.SignalWrapper import EVT_SIGNAL_CHANGE, SignalWrapper
-from MyHDLSim.Module import Module, EVT_MODULE_MOVE
+from MyHDLSim.Wrappers.SignalWrapper import SignalWrapper
+from MyHDLSim.Module import Module
 from MyHDLSim.wxApplication import MainWindow, ThreadTimer, EVT_THREAD_TIMER
 
 class Manager:
@@ -34,24 +34,25 @@ class Manager:
         self._moduleHierarchy = []
         self._displayDepth = 0
         
-        self._frame.Bind(EVT_MODULE_MOVE, self.OnModuleMove)
         self._canvas.Bind(wx.EVT_CHAR, self.OnKey)
 
         # Set timing events
         self._pause = False
+        self._frame._OnPauseClick(None)
         self._timer = ThreadTimer(self._frame)
-        self._timer.start(150)
+        self._timer.start(250)
         self._frame.Bind(EVT_THREAD_TIMER, self.OnTimer)
 
         self._canvas.SetFocus()
         
-    def CreateSignal(self, initial = None):
+    def CreateSignal(self, initial = None, width = 1):
         """ Create a signal which we can keep track of
         
         This needs to be done before adding switches or probes
+        initial: initial value of the signal (or undefined)
+        width: How many bits in this signal
         """
         signal = SignalWrapper(self._canvas, initial)
-        signal.AddListener(self._frame)
         self._signals.append(signal)
         return signal
         
@@ -261,19 +262,6 @@ class Manager:
                     m.ShowDetails(True)
             self._displayDepth = tempDepth
             self._refresh()
-    
-    def OnModuleMove(self, e):
-        """ When a module moves (the shape) we need to move its contents
-        e.Shape holds the shape that actually moved
-        We look up the shape against our module dictionary
-        """
-##        moduleShape = e.Shape
-##        if (moduleShape in self._moduleMap):
-##            module = self._moduleMap[moduleShape]
-##            module.Move(moduleShape.GetX() - module.GetWidth() / 2,
-##                        moduleShape.GetY() - module.GetHeight() / 2)
-        ## We don't need this if we use children shapes
-        pass
             
     def GetFrame(self):
         """ Get the frame for event firing

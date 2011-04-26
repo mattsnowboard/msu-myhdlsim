@@ -7,9 +7,9 @@ def MyModule(manager, signalA, signalB, signalOut):
     
     # lets give input/output ports some names for rendering
     # give locations relative to the module box
-    module.AddPort((0,0), signalA, True, "A input")
-    module.AddPort((0,50), signalB, True, "B input")
-    module.AddPort((400,50), signalOut, False, "OUTPUT")
+    module.AddPort(signalA, True, "A input")
+    module.AddPort(signalB, True, "B input")
+    module.AddPort(signalOut, False, "OUTPUT")
     
     #hmm, locations don't matter too much usually...
     # just add gates to the module

@@ -2,7 +2,7 @@ import wx
 import wx.lib.ogl as ogl
 
 class GenericGateShape(ogl.CompositeShape):
-    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, doConnect = True , topShapes = [], bottomShapes = []):
+    def __init__(self, canvas, inLeftShapes, outShapes, mainShape, topShapes = [], bottomShapes = [], doConnect = True):
         ogl.CompositeShape.__init__(self)
         self.SetCanvas(canvas)
         
@@ -123,19 +123,6 @@ class GenericGateShape(ogl.CompositeShape):
         for child in self.GetChildren():
             child.SetPen(pen)
 
-
-    def ChangeMain(self, main):
-        """ Set a new Main shape to toggle the look of the shape
-        """
-        if main != None:
-            self.RemoveChild(self._main)
-            self._main = main
-            self.AddChild(self._main)
-            self.Recompute()
-            self._main.SetDraggable(False)
-            self._main.SetSensitivityFilter(0)
-
-
 class GenericGateWrapper:
     """ This class wraps a gate for drawing
     
@@ -159,7 +146,7 @@ class GenericGateWrapper:
         outShapes = [out.GetShape()]
 	
         # default shape that other classes SHOULD override
-        self._shape = GenericGateShape(drawManager, leftInShapes, outShapes, gateshape, topShapes, bottomShapes)
+        self._shape = GenericGateShape(drawManager, leftInShapes, outShapes, gateshape, topShapes, bottomShapes, True)
         dc = wx.ClientDC(drawManager)
         drawManager.PrepareDC(dc)
 
