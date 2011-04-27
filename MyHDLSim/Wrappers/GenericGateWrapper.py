@@ -1,5 +1,6 @@
 import wx
 import wx.lib.ogl as ogl
+from myhdl import Signal, always_comb, instances
 
 class GenericGateShape(ogl.CompositeShape):
     def __init__(self, canvas, inLeftShapes, outShapes, mainShape, topShapes = [], bottomShapes = [], doConnect = True):
@@ -155,6 +156,87 @@ class GenericGateWrapper:
         # store these values in case we have to recalculate
         self._x = x
         self._y = y
+
+    def _CreateInstance(self, Type, out, a = None, b = None, c = None, d = None, e = None, f = None):
+        """
+        Create a MyHDL instance that takes 2-7 parameters
+        """
+        outSig = out.GetSignal()
+        aSig = a.GetSignal()
+        minArgs = 2
+        bSig = None
+        if (b != None):
+            minArgs += 1
+            bSig = b.GetSignal()
+        cSig = None
+        if (c != None):
+            minArgs += 1
+            cSig = c.GetSignal()
+        dSig = None
+        if (d != None):
+            minArgs += 1
+            dSig = d.GetSignal()
+        eSig = None
+        if (e != None):
+            minArgs += 1
+            eSig = e.GetSignal()
+        fSig = None
+        if (f != None):
+            minArgs += 1
+            fSig = f.GetSignal()
+        if ( len(outSig) > 1 ):
+            def Gates(Type, minArgs, outSig, aSig, bSig, cSig, dSig, eSig, fSig):
+                self._inst = []
+                gateInst = [None for i in range(len(outSig))]
+                outTemp = [Signal(int(outSig(i))) for i in range(len(outSig))]
+                outList = [outSig(i) for i in range(len(outSig))]
+                aList = [aSig(i) for i in range(len(aSig))]
+                bList = [None for i in range(len(outSig))]
+                if (bSig != None):
+                    bList = [bSig(i) for i in range(len(bSig))]
+                cList = [None for i in range(len(outSig))]
+                if (cSig != None):
+                    cList = [cSig(i) for i in range(len(cSig))]
+                dList = [None for i in range(len(outSig))]
+                if (dSig != None):
+                    dList = [dSig(i) for i in range(len(dSig))]
+                eList = [None for i in range(len(outSig))]
+                if (eSig != None):
+                    eList = [eSig(i) for i in range(len(eSig))]
+                fList = [None for i in range(len(outSig))]
+                if (fSig != None):
+                    fList = [fSig(i) for i in range(len(fSig))]
+                for i in range(len(outSig)):
+                    gateInst[i] = self._createSingleInstance(Type, minArgs, outTemp[i], aList[i], bList[i], cList[i], dList[i], eList[i], fList[i])
+
+                @always_comb
+                def connect_out_bits():
+                    for i in range(len(outTemp)):
+                        outSig.next[i] = outTemp[i]
+                        
+                return instances()
+            self._inst = Gates(Type, minArgs, outSig, aSig, bSig, cSig, dSig, eSig, fSig)
+
+        else:
+            self._inst = self._createSingleInstance(Type, minArgs, outSig, aSig, bSig, cSig, dSig, eSig, fSig)
+
+    def _createSingleInstance(self, Type, minArgs, out, a, b, c, d, e, f):
+        """
+        Create instance at the MyHDL layer
+        """
+        if (minArgs == 7 or b != None and c != None and d != None and e != None and f != None):
+            inst = Type(out, a, b, c, d, e, f)
+        elif (minArgs == 6 or b != None and c != None and d != None and e != None):
+            inst = Type(out, a, b, c, d, e)
+        elif (minArgs == 5 or b != None and c != None and d != None):
+            inst = Type(out, a, b, c, d)
+        elif (minArgs == 4 or b != None and c != None):
+            inst = Type(out, a, b, c)
+        elif (minArgs == 3 or b != None):
+            inst = Type(out, a, b)
+        else:
+            inst = Type(out, a)
+        return inst
     
     """def _addSignal(self, signal):
         """""" Add signal

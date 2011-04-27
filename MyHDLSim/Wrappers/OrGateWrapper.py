@@ -25,29 +25,6 @@ class OrGateWrapper(GenericGateWrapper):
     
     def __init__(self, drawManager, x, y, out, a, b, c = None, d = None):
         GenericGateWrapper.__init__(self, drawManager, x, y, [a,b,c,d], OrGateShape(), out)
-        if (c != None and d != None):
-            self._inst = Or(out.GetSignal(),
-                            a.GetSignal(),
-                            b.GetSignal(),
-                            c.GetSignal(),
-                            d.GetSignal())
-        elif (c != None):
-            self._inst = Or(out.GetSignal(),
-                            a.GetSignal(),
-                            b.GetSignal(),
-                            c.GetSignal())
-        else:
-            self._inst = Or(out.GetSignal(),
-                            a.GetSignal(),
-                            b.GetSignal())
-        #GenericGateWrapper._addSignal(self, a)
-        #GenericGateWrapper._addSignal(self, b)
-        #GenericGateWrapper._addSignal(self, c)
-        #GenericGateWrapper._addSignal(self, d)
-        #GenericGateWrapper._addSignal(self, out)
-        # override default here!
-        #self._shape = ogl.RectangleShape(100, 100)
-        #self._shape.SetX(x)
-        #self._shape.SetY(y)
-        #drawManager.AddMyHDLGate(self._shape)
+        self._CreateInstance(Or, out, a, b, c, d)
+
         GenericGateWrapper._connectWires(self, drawManager)

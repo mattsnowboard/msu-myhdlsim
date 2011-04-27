@@ -1,6 +1,6 @@
 import wx, wx.lib.newevent
 import wx.lib.ogl as ogl
-from myhdl import Signal, always
+from myhdl import Signal, always, intbv
 from MyHDLSim.sequential import ClkDriver
 
 # OGL object to draw a signal
@@ -52,8 +52,15 @@ class SignalWrapper:
     """
     
     def __init__(self, canvas, signal = None, width = 1, label = ''):
+        """
+
+        @todo assert that width >= 1
+        """
         self._label = label
-        self._signal = Signal(signal)
+        if (width == 1):
+            self._signal = Signal(signal)
+        else:
+            self._signal = Signal(intbv(signal)[width:])
         self._shape = ogl.RectangleShape(10,10)
         self._shape.AddText(str(self._signal.val))
         
@@ -102,8 +109,13 @@ class SignalWrapper:
         
         If it was unitialized, just assert it
         """
-        
-        if (self._signal == None):
+
+        if (len(self._signal) > 1):
+            if (self._signal + 1 == self._signal.max):
+                self._signal.next = 0
+            else:
+                self._signal.next = self._signal + 1
+        elif (self._signal == None):
             self._signal.next = True
         else:
             self._signal.next = not self._signal
@@ -120,6 +132,10 @@ class SignalWrapper:
             if (self._signal.val == None):
                 self._shape.AddText(str(self._signal.val))
                 self._shape.SetBrush(wx.Brush("GREY", wx.SOLID))
+                self._shape.SetTextColour("BLACK")
+            elif (len(self._signal) > 1):
+                self._shape.AddText(bin(self._signal.val))
+                self._shape.SetBrush(wx.Brush("WHITE", wx.SOLID))
                 self._shape.SetTextColour("BLACK")
             elif (bool(self._signal.val) == False):
                 self._shape.AddText(str(bool(self._signal.val)))

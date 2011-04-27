@@ -52,7 +52,7 @@ class Manager:
         initial: initial value of the signal (or undefined)
         width: How many bits in this signal
         """
-        signal = SignalWrapper(self._canvas, initial)
+        signal = SignalWrapper(self._canvas, initial, width)
         self._signals.append(signal)
         return signal
         

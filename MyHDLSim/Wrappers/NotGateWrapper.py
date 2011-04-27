@@ -26,13 +26,6 @@ class NotGateWrapper(GenericGateWrapper):
     
     def __init__(self, drawManager, x, y, out, a):
         GenericGateWrapper.__init__(self, drawManager, x, y, [a], NotGateShape(), out)
-        self._inst = Not(out.GetSignal(),
-			 a.GetSignal())
-        #GenericGateWrapper._addSignal(self, a)
-        #GenericGateWrapper._addSignal(self, out)
-        # override default here!
-        #self._shape = ogl.RectangleShape(100, 100)
-        #self._shape.SetX(x)
-        #self._shape.SetY(y)
-        #drawManager.AddMyHDLGate(self._shape)
+        self._CreateInstance(Not, out, a)
+        
         GenericGateWrapper._connectWires(self, drawManager)

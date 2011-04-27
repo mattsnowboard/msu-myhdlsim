@@ -19,16 +19,14 @@ class Mux21Shape(ogl.PolygonShape):
         self.Create(points)
         self.CalculatePolygonCentre
         self.AddText("MUX 2-1")
-        self.SetRegionName("MUX 21")
+        self.SetRegionName("MUX 2-1")
 
 class Mux21Wrapper:
     """ This class wraps a MyHDLSim.combinational.MUX21 function for drawing """
     
     def __init__(self, drawManager, x, y, out, select, a, b):
         GenericGateWrapper.__init__(self, drawManager, x, y, [a,b], Mux21Shape(), [out], [select])
-        self._inst = Mux21(out.GetSignal(),
-			   select.GetSignal(),
-			   a.GetSignal(),
-			   b.GetSignal())
+        self._CreateInstance(Mux21, out, select, a, b)
+
         GenericGateWrapper._connectWires(self, drawManager)
 

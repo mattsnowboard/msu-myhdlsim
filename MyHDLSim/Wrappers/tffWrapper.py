@@ -28,20 +28,7 @@ class TffWrapper:
     
     def __init__(self, drawManager, x, y, q, t, clk, rst = None, s = None):
         GenericGateWrapper.__init__(self, drawManager, x, y, [t, clk], tffShape(), [q], [s], [rst] )
-        if (rst != None and s != None):
-            self._inst = tff(q.GetSignal(),
-                             t.GetSignal(),
-                             clk.GetSignal(),
-                             rst.GetSignal(),
-                             s.GetSignal())
-        elif (rst != None):
-            self._inst = tff(q.GetSignal(),
-                             t.GetSignal(),
-                             clk.GetSignal(),
-                             rst.GetSignal())
-        else:
-            self._inst = tff(q.GetSignal(),
-                             t.GetSignal(),
-                             clk.GetSignal())
+        self._CreateInstance(tff, q, t, clk, rst, s)
+
         GenericGateWrapper._connectWires(self, drawManager)
 
