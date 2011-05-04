@@ -4,11 +4,14 @@ from MyHDLSim.combinational import Nxor
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateWrapper
 
 class NxorGateShape(ogl.CompositeShape):
+    """ This shape is used exclusively to contruct the NXOR Gate main shape.
+        The shape is initially based within an 80x80 square, centered """
     def __init__(self, canvas):
         ogl.CompositeShape.__init__(self)
 
         self.SetCanvas(canvas) 
 
+        # Shape1 = Outerline of Shape
         shape1 = ogl.PolygonShape()
         points1 = [ (-2.5, 40),
                     (2.5, 20),
@@ -18,6 +21,7 @@ class NxorGateShape(ogl.CompositeShape):
                     (2.5, 20) ]
         shape1.Create(points1)                  
         
+        # Shape2 = Actual Gate Shape
         shape2 = ogl.PolygonShape()
         points2 = [ (-35, 40),
                     (20, 40),

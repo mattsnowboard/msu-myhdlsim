@@ -4,6 +4,8 @@ from MyHDLSim.combinational import Mux21
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateWrapper
 
 class Mux21Shape(ogl.PolygonShape):
+    """ This shape is used exclusively to contruct the MUX 2-1 Gate main shape.
+        The shape is initially based within an 80x80 square, centered """
     def __init__(self):
         ogl.PolygonShape.__init__(self)
 

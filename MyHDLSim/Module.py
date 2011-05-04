@@ -329,6 +329,8 @@ class Module:
                           self.SignalToPort(s))
         self._addInstance(gate)
     
+    # TODO Add Counter and Add Decoder
+
     def AddModule(self, module, pos, name):
         """ Add a module
         

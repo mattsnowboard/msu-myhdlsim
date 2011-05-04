@@ -11,7 +11,7 @@ class GenericGateShape(ogl.CompositeShape):
         self._main = mainShape
         self.AddChild(self._main)
 
-        # Determine spacing
+        # Determine numbers & shape dimensions
         numLeftIn = len(inLeftShapes)
         numOut = len(outShapes)
         numTop = len(topShapes)
@@ -20,12 +20,14 @@ class GenericGateShape(ogl.CompositeShape):
         if isinstance(self._main, ogl.CompositeShape):
             shapeHeight = self._main.GetHeight()
             shapeWidth = self._main.GetWidth()
+
         # Left spacing
         leftInHeight = 0
         if (numLeftIn > 0):
             leftInHeight = inLeftShapes[0].GetHeight()
         if (numLeftIn > 1):
             YspaceLeftIns = (shapeHeight - leftInHeight * numLeftIn) / (numLeftIn)
+
         # Right spacing
         outHeight = 0
         if (numOut > 0):
@@ -39,6 +41,7 @@ class GenericGateShape(ogl.CompositeShape):
             topWidth = topShapes[0].GetWidth()
         if (numTop > 1):
             XspaceTops = (shapeWidth - topWidth * numTop) / (numTop)
+
         # Bottom spacing
         bottomWidth = 0
         if (numBottom > 0):
@@ -135,9 +138,11 @@ class GenericGateWrapper:
         x, y : position of the gate
         """
         PurgeList(leftIns)
+        PurgeList(out)
         PurgeList(tops)
         PurgeList(bottoms)
-        self._leftInSignals = leftIns
+        self._leftInSignals = leftIns.
+        self._out = out
         self._tops = tops
         self._bottoms = bottoms
 

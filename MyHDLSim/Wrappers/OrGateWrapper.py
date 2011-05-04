@@ -4,6 +4,8 @@ from MyHDLSim.combinational import Or
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateWrapper
 
 class OrGateShape(ogl.PolygonShape):
+    """ This shape is used exclusively to contruct the OR Gate main shape.
+        The shape is initially based within an 80x80 square, centered """
     def __init__(self):
         ogl.PolygonShape.__init__(self)
 

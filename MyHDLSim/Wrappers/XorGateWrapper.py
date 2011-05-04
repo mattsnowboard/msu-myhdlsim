@@ -4,11 +4,14 @@ from MyHDLSim.combinational import Xor
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateWrapper
 
 class XorGateShape(ogl.CompositeShape):
+    """ This shape is used exclusively to contruct the XOR Gate main shape.
+        The shape is initially based within an 80x80 square, centered """
     def __init__(self, canvas):
         ogl.CompositeShape.__init__(self)
 
         self.SetCanvas(canvas) 
 
+        # Shape1 = Outerline of Shape
         shape1 = ogl.PolygonShape()
         points1 = [ (-2.5, 40),
                     (2.5, 20),
@@ -16,8 +19,9 @@ class XorGateShape(ogl.CompositeShape):
                     (-2.5, -40),
                     (2.5, -20),
                     (2.5, 20) ]
-        shape1.Create(points1)                  
-        
+        shape1.Create(points1)    
+              
+        # Shape2 = Actual Gate Shape       
         shape2 = ogl.PolygonShape()
         points2 = [ (-35, 40),
                     (20, 40),

@@ -4,6 +4,8 @@ from MyHDLSim.sequential import tff
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateWrapper
 
 class tffShape(ogl.PolygonShape):
+    """ This shape is used exclusively to contruct the TFF Gate main shape.
+        The shape is initially based within an 80x80 square, centered """
     def __init__(self):
         ogl.PolygonShape.__init__(self)
 
