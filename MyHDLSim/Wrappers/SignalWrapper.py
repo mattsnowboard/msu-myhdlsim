@@ -89,6 +89,7 @@ class SignalWrapper:
     def SetInputProbe(self, canvas, a, label):
         """ Sets signal as a probe, need to recreate shape
         
+        @todo May be an output probe as well, name could change
         """
         self._label = label
         self._signal = a._signal

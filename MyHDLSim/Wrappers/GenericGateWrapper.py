@@ -267,7 +267,7 @@ class GenericGateWrapper:
                 drawManager.ConnectWires(self._shape._main, s.GetShape())"""
         
     def GetInstance(self):
-        """ Get instance for simulator """
+        """ Get instance(s) for simulator """
         return self._inst
         
     def GetShape(self):
