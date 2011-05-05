@@ -226,6 +226,8 @@ class Manager:
 
     def _buildHierarchy(self, module, level):
         """ Recursive calls to build the module hierarchy list
+        
+        This is used for module showing/hiding by depth
         """
         for m in module.GetModules():
             if level + 1 > len(self._moduleHierarchy):

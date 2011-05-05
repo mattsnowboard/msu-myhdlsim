@@ -1,5 +1,9 @@
 from myhdl import Signal, always_comb, instances, now
 
+"""
+The following are built on top of MyHDL to offer basic combinational circuits
+"""
+
 def And(f, a, b, c = Signal(1), d = Signal(1)):
 
     """ AND gate.
@@ -42,7 +46,7 @@ def Or(f, a, b, c = Signal(0), d = Signal(0)):
     """ OR gate.
     
     f -- output
-    a, b -- data inputs
+    a, b, c, d -- data inputs
 
     """
 
@@ -60,7 +64,7 @@ def Nor(f, a, b, c = Signal(0), d = Signal(0)):
     """ NOR gate.
     
     f -- output
-    a, b -- data inputs
+    a, b, c, d -- data inputs
 
     """
 
@@ -96,7 +100,7 @@ def Xor(f, a, b, c = Signal(0), d = Signal(0)):
     """ XOR gate.
 
     f -- output
-    a,b -- data inputs
+    a, b, c, d -- data inputs
 
     """
 
@@ -114,7 +118,7 @@ def Nxor(f, a, b, c = Signal(0), d = Signal(0)):
     """ NXOR gate.
     
     f -- output
-    a, b -- data inputs
+    a, b, c, d -- data inputs
 
     """
 
