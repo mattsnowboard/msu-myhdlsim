@@ -174,6 +174,8 @@ class Manager:
         This is a way to allow users to ignore the underlying module
         """
         self._top.AddDff(pos, q, d, clk, rst = None, s = None)
+
+    # TODO Add Counter and Add Decoder
     
     def AddModule(self, module, pos, name):
         """ Add a module

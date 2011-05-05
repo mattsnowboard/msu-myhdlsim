@@ -4,6 +4,8 @@ from MyHDLSim.combinational import And
 from MyHDLSim.Wrappers.GenericGateWrapper import GenericGateWrapper
 
 class AndGateShape(ogl.PolygonShape):
+    """ This shape is used exclusively to contruct the AND Gate main shape.
+        The shape is initially based within an 80x80 square, centered """
     def __init__(self):
         ogl.PolygonShape.__init__(self)
 
@@ -25,5 +27,4 @@ class AndGateWrapper(GenericGateWrapper):
     def __init__(self, drawManager, x, y, out, a, b, c = None, d = None):
         GenericGateWrapper.__init__(self, drawManager, x, y, [a,b,c,d], AndGateShape(), out)
         self._CreateInstance(And, out, a, b, c, d)
-
         GenericGateWrapper._connectWires(self, drawManager)
