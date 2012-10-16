@@ -14,6 +14,13 @@ Note
 
 This was developed for a class project during a semester. It is not complete but it works.
 
+Directories
+===========
+
+MyHDLSim: Contains the actual library code
+intro01: Contains an example program using the library
+intro02: Contains an example program using the library
+
 Docs
 ====
 
